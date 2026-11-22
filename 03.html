@@ -3,13 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <meta name="color-scheme" content="light">
     <title>第3章 微积分与优化基础</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .math-equation { max-width: 100%; min-width: 0; margin: 1.6rem 0; padding: .5rem 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .math-scroll { display: block; max-width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; }
+        .math-scroll:focus-visible { outline: 3px solid #147f80; outline-offset: 2px; }
+        .math-scroll math[display="block"] { width: max-content; min-width: 100%; font-size: clamp(1.05rem, 2.2vw, 1.3rem); }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } .math-scroll { overflow: visible; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,19 +58,36 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第3章 微积分与优化基础</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第3章 微积分与优化基础</h1>
 
         <p>大家好，我是你们的讲师。上一章我们打下了线性代数的基础——那是描述机器人"在什么位置、朝向哪里"的语言。但机器人不是静态的雕塑，它要运动、要控制、要找到最优路径。这就引出了本章的核心主题：微积分和优化。微积分告诉我们"一个量怎么变化"，优化告诉我们在给定了变化规律后，"怎样才能做到最好"。</p>
 
         <p>想象你在操控一条六轴机械臂去抓取一个移动的传送带上的零件。机械臂的每个关节角度随时间变化，末端的位置和速度是关节角度的函数——要精确跟踪运动目标，你需要知道"关节角度变一点点对末端位置的影响有多大"，这正是微分在机器人学中最直接的应用。而优化则体现在：在众多可能的运动轨迹中，找到一条最平滑、最省力、且不碰撞障碍物的那一条。没有微积分和优化，机器人就会像盲人摸象一样——只能瞎试。</p>
 
-        <h3>3.1 导数与梯度</h3>
+        <h2>3.1 导数与梯度</h2>
 
-        <p>导数的核心思想非常简单：当一个函数的输入变化一点点时，输出变化多少。用符号来说，\(f'(x) = \lim_{\Delta x \to 0} \frac{f(x+\Delta x) - f(x)}{\Delta x}\)。但在机器人学中，我们几乎永远处理的是多变量函数——比如位置是关节角度的函数 \(\mathbf{p}(\mathbf{q})\)，其中 \(\mathbf{q} = (q_1, q_2, ..., q_6)\) 是六个关节角度。</p>
+        <p>导数的核心思想非常简单：当一个函数的输入变化一点点时，输出变化多少。用符号来说：</p>
 
-        <p>对于多变量函数，我们把每个方向上的偏导数组合成一个向量，就得到了<strong>梯度（Gradient）</strong>：\(\nabla f = (\partial f/\partial x_1, \partial f/\partial x_2, ..., \partial f/\partial x_n)^T\)。梯度的方向是函数值增长最快的方向。在机器人路径优化中，如果我们想最小化末端执行器的轨迹误差，就沿着梯度的反方向走——这就是梯度下降（Gradient Descent）的精髓。</p>
+        <div class="math-equation" role="group" aria-label="导数的极限定义">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="导数定义公式，可横向滚动">
+                <math display="block" aria-label="导数定义公式"><msup><mi>f</mi><mo>′</mo></msup><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><munder><mo>lim</mo><mrow><mi>Δ</mi><mi>x</mi><mo>→</mo><mn>0</mn></mrow></munder><mfrac><mrow><mi>f</mi><mo>(</mo><mi>x</mi><mo>+</mo><mi>Δ</mi><mi>x</mi><mo>)</mo><mo>−</mo><mi>f</mi><mo>(</mo><mi>x</mi><mo>)</mo></mrow><mrow><mi>Δ</mi><mi>x</mi></mrow></mfrac></math>
+            </div>
+        </div>
+
+        <p>在机器人学中，我们几乎永远处理的是多变量函数——比如位置是关节角度的函数 <math class="math-inline" aria-label="末端位置 p 是关节角 q 的函数"><mrow><mi>p</mi><mo>(</mo><mi>q</mi><mo>)</mo></mrow></math>，其中 <math class="math-inline" aria-label="六个关节角向量 q"><mrow><mi>q</mi><mo>=</mo><mo>(</mo><msub><mi>q</mi><mn>1</mn></msub><mo>,</mo><msub><mi>q</mi><mn>2</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>q</mi><mn>6</mn></msub><mo>)</mo></mrow></math> 是六个关节角度。</p>
+
+        <p>对于多变量函数，我们把每个方向上的偏导数组合成一个向量，就得到了<strong>梯度（Gradient）</strong>：</p>
+
+        <div class="math-equation" role="group" aria-label="梯度定义">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="梯度定义公式，可横向滚动">
+                <math display="block" aria-label="梯度定义公式"><mi>∇</mi><mi>f</mi><mo>=</mo><msup><mrow><mo>(</mo><mo>∂</mo><mi>f</mi><mo>/</mo><mo>∂</mo><msub><mi>x</mi><mn>1</mn></msub><mo>,</mo><mo>∂</mo><mi>f</mi><mo>/</mo><mo>∂</mo><msub><mi>x</mi><mn>2</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><mo>∂</mo><mi>f</mi><mo>/</mo><mo>∂</mo><msub><mi>x</mi><mi>n</mi></msub><mo>)</mo></mrow><mi>T</mi></msup></math>
+            </div>
+        </div>
+
+        <p>梯度的方向是函数值增长最快的方向。在机器人路径优化中，如果我们想最小化末端执行器的轨迹误差，就沿着梯度的反方向走——这就是梯度下降（Gradient Descent）的精髓。</p>
 
         <p>让我分享一段亲身经历。几年前，我在做一个双臂协作机器人项目，需要优化两条机械臂的协同轨迹——既要保证它们各自到达目标位置，又要避免互相碰撞，还要最小化总的关节运动量。我一开始试图手工调参，折腾了整整一周，结果两条臂总是在某个区域差点碰撞。后来我换成了梯度优化的方法——把约束写成代价函数，算梯度，然后迭代优化——一天就解决了问题。这件事让我明白了：<strong>当你觉得"手动调参"很爽时，其实是在逃避写优化代码</strong>。数学工具在大多数情况下比直觉更可靠。</p>
 
@@ -61,9 +95,41 @@
             <p><strong>关键洞察</strong>：机器人学中的很多问题，本质上都可以归结为"求某个量的梯度"——例如，运动学求位置对关节角的梯度（Jacobian矩阵），动力学求力矩对加速度的梯度，SLAM求位姿对观测误差的梯度。掌握了梯度这一概念，你就掌握了机器人学优化的钥匙。</p>
         </div>
 
-        <h3>3.2 雅可比矩阵</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig3a-title fig3a-desc" viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig3a-title">凸代价函数上的梯度下降路径</title>
+                <desc id="fig3a-desc">一组同心椭圆表示凸二次代价函数的等高线。一条带点的折线从图左上出发，沿负梯度方向逐步向下走向椭圆中心的最小值，越接近中心步长越小。</desc>
+                <rect width="640" height="330" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig3a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                        <path d="M0 0 L10 5 L0 10 z" fill="#c2410c"/>
+                    </marker>
+                </defs>
+                <g fill="none" stroke="#94a3b8" stroke-width="1.5">
+                    <ellipse cx="430" cy="170" rx="145" ry="88"/>
+                    <ellipse cx="430" cy="170" rx="95" ry="58"/>
+                    <ellipse cx="430" cy="170" rx="45" ry="28"/>
+                </g>
+                <polyline points="110,70 250,105 340,140 400,160 425,168" fill="none" stroke="#0e7490" stroke-width="3"/>
+                <g fill="#0e7490">
+                    <circle cx="110" cy="70" r="6"/><circle cx="250" cy="105" r="6"/><circle cx="340" cy="140" r="6"/>
+                    <circle cx="400" cy="160" r="6"/><circle cx="425" cy="168" r="6"/>
+                </g>
+                <circle cx="430" cy="170" r="7" fill="#c2410c"/>
+                <path d="M110 70 L170 88" stroke="#c2410c" stroke-width="3" marker-end="url(#fig3a-arrow)"/>
+                <g fill="#0f172a" font-size="17" font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="470" y="250">等高线 f(x) = 常数</text>
+                    <text x="96" y="48">起点 x0</text>
+                    <text x="434" y="150">最小值 x*</text>
+                    <text x="120" y="120" fill="#c2410c" font-size="15">−∇f 方向</text>
+                </g>
+            </svg>
+            <figcaption>凸代价函数上的梯度下降。每一步都沿当前位置的负梯度方向移动，越靠近极小点梯度越小、步长自然变小。因为函数是凸的，<strong>任何一个局部极小点都是全局最优</strong>，所以不用担心像非凸问题那样停在局部极小。</figcaption>
+        </figure>
 
-        <p><strong>雅可比矩阵（Jacobian Matrix）</strong>是多变量函数的一阶偏导数矩阵，是梯度概念从标量函数到向量值函数的推广。对于一个将 \(n\) 维输入映射到 \(m\) 维输出的函数 \(\mathbf{f}: \mathbb{R}^n \to \mathbb{R}^m\)，它的Jacobian矩阵是：</p>
+        <h2>3.2 雅可比矩阵</h2>
+
+        <p><strong>雅可比矩阵（Jacobian Matrix）</strong>是多变量函数的一阶偏导数矩阵，是梯度概念从标量函数到向量值函数的推广。对于一个将 <math class="math-inline" aria-label="维度 n"><mi>n</mi></math> 维输入映射到 <math class="math-inline" aria-label="维度 m"><mi>m</mi></math> 维输出的函数 <math class="math-inline" aria-label="n 维到 m 维的向量函数 f"><mrow><mi>f</mi><mo>:</mo><msup><mi>ℝ</mi><mi>n</mi></msup><mo>→</mo><msup><mi>ℝ</mi><mi>m</mi></msup></mrow></math>，它的Jacobian矩阵是：</p>
 
         <pre><code>J = [[∂f₁/∂x₁, ∂f₁/∂x₂, ..., ∂f₁/∂xₙ],
      [∂f₂/∂x₁, ∂f₂/∂x₂, ..., ∂f₂/∂xₙ],
@@ -73,15 +139,15 @@
 # 在机器人学中，J 是 6×n 的矩阵（6=3个位置+3个姿态）
 # 第(i,j)个元素：第i个末端运动分量对第j个关节角度的偏导数</code></pre>
 
-        <p>Jacobian在机器人学中最直接的应用是<strong>速度运动学</strong>——它建立了关节速度 \(\dot{\mathbf{q}}\) 和末端空间速度 \(\mathbf{v}\) 之间的线性关系：\(\mathbf{v} = \mathbf{J}(\mathbf{q}) \dot{\mathbf{q}}\)。请注意，这是一个线性关系——虽然机器人的运动学本身是非线性的，但在<strong>速度层面</strong>，关系是线性的！这就是Jacobian的强大之处：它将一个非线性系统在局部线性化了。</p>
+        <p>Jacobian在机器人学中最直接的应用是<strong>速度运动学</strong>——它建立了关节速度 <math class="math-inline" aria-label="关节角速度 q 点"><mover><mi>q</mi><mo>˙</mo></mover></math> 和末端空间速度 <math class="math-inline" aria-label="末端速度 v"><mi>v</mi></math> 之间的线性关系：<math class="math-inline" aria-label="末端速度等于雅可比乘关节角速度"><mrow><mi>v</mi><mo>=</mo><mi>J</mi><mo>(</mo><mi>q</mi><mo>)</mo><mover><mi>q</mi><mo>˙</mo></mover></mrow></math>。请注意，这是一个线性关系——虽然机器人的运动学本身是非线性的，但在<strong>速度层面</strong>，关系是线性的！这就是Jacobian的强大之处：它将一个非线性系统在局部线性化了。</p>
 
-        <p>有了这个关系，我们就可以计算逆向速度运动学：\(\dot{\mathbf{q}} = \mathbf{J}(\mathbf{q})^{-1} \mathbf{v}\)——给定末端速度，反推出关节应该以多快的速度运动。当然，这需要 \(\mathbf{J}\) 是方阵且可逆，对于六轴机械臂（6个关节，6个自由度），这就是标准情形。当 \(\mathbf{J}\) 不可逆时，机器人处于奇异位形——下一章我们会深入讨论。</p>
+        <p>有了这个关系，我们就可以计算逆向速度运动学：<math class="math-inline" aria-label="关节角速度等于雅可比的逆乘末端速度"><mrow><mover><mi>q</mi><mo>˙</mo></mover><mo>=</mo><msup><mi>J</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>(</mo><mi>q</mi><mo>)</mo><mi>v</mi></mrow></math>——给定末端速度，反推出关节应该以多快的速度运动。当然，这需要 <math class="math-inline" aria-label="雅可比矩阵 J"><mi>J</mi></math> 是方阵且可逆，对于六轴机械臂（6个关节，6个自由度），这就是标准情形。当 <math class="math-inline" aria-label="雅可比矩阵 J"><mi>J</mi></math> 不可逆时，机器人处于奇异位形——下一章我们会深入讨论。</p>
 
         <div class="tip">
             <p><strong>知识点</strong>：Jacobian矩阵的零空间（Null Space）对应不改变末端位姿的关节运动——也就是"自运动"。冗余自由度机器人（如7轴KUKA iiwa）正是利用这一点来实现避障的同时保持末端不动。这也是为什么近年来人形机器人普遍采用7自由度手臂——多出来的一个自由度就是"操作裕量"。</p>
         </div>
 
-        <h3>3.3 凸优化入门</h3>
+        <h2>3.3 凸优化入门</h2>
 
         <p><strong>凸优化（Convex Optimization）</strong>是机器人学中最重要的优化框架。一个优化问题是凸的，如果它同时满足两个条件：(1) 目标函数是凸函数；(2) 可行域是凸集。凸优化为什么这么重要？一句话：<strong>凸优化问题的任何局部最优解都是全局最优解</strong>。这意味着你可以放心地使用各种迭代算法来求解，不用担心陷入局部最优。</p>
 
@@ -95,21 +161,45 @@
 
         <p>判断一个问题是不是凸的，有两条实用经验：一是"两个点之间的连线段是否都在可行域内"（判断凸集），二是"函数的Hessian矩阵是否半正定"（判断凸函数）。当然，现实中的很多机器人问题是非凸的（比如考虑障碍物的轨迹规划），但处理非凸问题的标准做法是"先凸松弛，再局部求精"——你在下一章会看到这个思路的具体应用。</p>
 
-        <h3>3.4 非线性最小二乘</h3>
+        <h2>3.4 非线性最小二乘</h2>
 
-        <p><strong>非线性最小二乘（Nonlinear Least Squares）</strong>是机器人学中出场率最高的优化形式。它的标准形式是：\(\min_{\mathbf{x}} \sum_{i} \|\mathbf{r}_i(\mathbf{x})\|^2\)，其中 \(\mathbf{r}_i\) 是残差（residual），通常是观测值与模型预测值之间的差异。在机器人学中，几乎所有基于传感器数据的估计问题都可以归结为非线性最小二乘：SLAM中的Bundle Adjustment、手眼标定、IMU预积分、点云配准……</p>
+        <p><strong>非线性最小二乘（Nonlinear Least Squares）</strong>是机器人学中出场率最高的优化形式。它的标准形式是：</p>
+
+        <div class="math-equation" role="group" aria-label="非线性最小二乘的目标函数">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="非线性最小二乘目标函数，可横向滚动">
+                <math display="block" aria-label="非线性最小二乘目标函数"><munder><mo>min</mo><mi>x</mi></munder><munder><mo>∑</mo><mi>i</mi></munder><msup><mrow><mo>‖</mo><msub><mi>r</mi><mi>i</mi></msub><mo>(</mo><mi>x</mi><mo>)</mo><mo>‖</mo></mrow><mn>2</mn></msup></math>
+            </div>
+        </div>
+
+        <p>其中 <math class="math-inline" aria-label="残差 r i"><msub><mi>r</mi><mi>i</mi></msub></math> 是残差（residual），通常是观测值与模型预测值之间的差异。在机器人学中，几乎所有基于传感器数据的估计问题都可以归结为非线性最小二乘：SLAM中的Bundle Adjustment、手眼标定、IMU预积分、点云配准……</p>
 
         <p>求解非线性最小二乘的两个核心算法是<strong>Gauss-Newton</strong>和<strong>Levenberg-Marquardt（LM）</strong>。</p>
 
-        <p>Gauss-Newton的思想是：在当前估计点 \(\mathbf{x}_k\) 处对残差做一阶泰勒展开，得到一个线性最小二乘子问题，求解后更新 \(\mathbf{x}\)，重复直到收敛。它的更新步长是 \(\Delta \mathbf{x} = -(\mathbf{J}^T \mathbf{J})^{-1} \mathbf{J}^T \mathbf{r}\)，其中 \(\mathbf{J}\) 是残差的Jacobian矩阵。</p>
+        <p>Gauss-Newton的思想是：在当前估计点 <math class="math-inline" aria-label="第 k 次迭代的估计 x k"><msub><mi>x</mi><mi>k</mi></msub></math> 处对残差做一阶泰勒展开，得到一个线性最小二乘子问题，求解后更新 <math class="math-inline" aria-label="优化变量 x"><mi>x</mi></math>，重复直到收敛。它的更新步长是：</p>
 
-        <p>Levenberg-Marquardt是Gauss-Newton的改进版：它引入了一个阻尼项 \(\lambda \mathbf{I}\)，将更新公式变为 \(\Delta \mathbf{x} = -(\mathbf{J}^T \mathbf{J} + \lambda \mathbf{I})^{-1} \mathbf{J}^T \mathbf{r}\)。当 \(\lambda\) 很大时，LM退化为梯度下降（稳健但慢）；当 \(\lambda\) 很小时，LM接近Gauss-Newton（快但可能不稳）。LM通过自适应地调整 \(\lambda\)，在两者之间取得平衡。在SLAM的Bundle Adjustment中，LM几乎是事实上的标准求解器——g2o、Ceres Solver、GTSAM这些库的核心都是LM。</p>
-
-        <div class="warning">
-            <p><strong>避坑指南</strong>：使用Gauss-Newton时一定要检查 \(\mathbf{J}^T \mathbf{J}\) 是否可逆。如果残差在某方向上的信息不足（即该方向上的观测为0），\(\mathbf{J}^T \mathbf{J}\) 会是奇异的，算法会发散。这就是为什么在机器人标定时，你需要设计"激励充分"的运动——让机器人在各个方向上都有足够的信息量，否则标定结果会非常不稳定。</p>
+        <div class="math-equation" role="group" aria-label="高斯-牛顿更新步长">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="高斯-牛顿更新公式，可横向滚动">
+                <math display="block" aria-label="高斯-牛顿更新公式"><mi>Δ</mi><mi>x</mi><mo>=</mo><mo>−</mo><msup><mrow><mo>(</mo><msup><mi>J</mi><mi>T</mi></msup><mi>J</mi><mo>)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>J</mi><mi>T</mi></msup><mi>r</mi></math>
+            </div>
         </div>
 
-        <h3>3.5 优化方法对比</h3>
+        <p>其中 <math class="math-inline" aria-label="雅可比矩阵 J"><mi>J</mi></math> 是残差的Jacobian矩阵。</p>
+
+        <p>Levenberg-Marquardt是Gauss-Newton的改进版：它引入了一个阻尼项 <math class="math-inline" aria-label="阻尼项 λ 乘单位阵"><mrow><mi>λ</mi><mi>I</mi></mrow></math>，将更新公式变为：</p>
+
+        <div class="math-equation" role="group" aria-label="列文伯格-马夸尔特更新步长">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="列文伯格-马夸尔特更新公式，可横向滚动">
+                <math display="block" aria-label="列文伯格-马夸尔特更新公式"><mi>Δ</mi><mi>x</mi><mo>=</mo><mo>−</mo><msup><mrow><mo>(</mo><msup><mi>J</mi><mi>T</mi></msup><mi>J</mi><mo>+</mo><mi>λ</mi><mi>I</mi><mo>)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><msup><mi>J</mi><mi>T</mi></msup><mi>r</mi></math>
+            </div>
+        </div>
+
+        <p>当 <math class="math-inline" aria-label="阻尼因子 λ"><mi>λ</mi></math> 很大时，LM退化为梯度下降（稳健但慢）；当 <math class="math-inline" aria-label="阻尼因子 λ"><mi>λ</mi></math> 很小时，LM接近Gauss-Newton（快但可能不稳）。LM通过自适应地调整 <math class="math-inline" aria-label="阻尼因子 λ"><mi>λ</mi></math>，在两者之间取得平衡。在SLAM的Bundle Adjustment中，LM几乎是事实上的标准求解器——g2o、Ceres Solver、GTSAM这些库的核心都是LM。</p>
+
+        <div class="warning">
+            <p><strong>避坑指南</strong>：使用Gauss-Newton时一定要检查 <math class="math-inline" aria-label="J 转置乘 J"><mrow><msup><mi>J</mi><mi>T</mi></msup><mi>J</mi></mrow></math> 是否可逆。如果残差在某方向上的信息不足（即该方向上的观测为0），<math class="math-inline" aria-label="J 转置乘 J"><mrow><msup><mi>J</mi><mi>T</mi></msup><mi>J</mi></mrow></math> 会是奇异的，算法会发散。这就是为什么在机器人标定时，你需要设计"激励充分"的运动——让机器人在各个方向上都有足够的信息量，否则标定结果会非常不稳定。</p>
+        </div>
+
+        <h2>3.5 优化方法对比</h2>
 
         <p>下表总结了本章涉及的三种主要优化方法，以便你在实际项目中选择合适的工具：</p>
 
@@ -134,7 +224,7 @@
                 <tr>
                     <td>Gauss-Newton</td>
                     <td>二次收敛（快）</td>
-                    <td>低（需要 \(\mathbf{J}^T\mathbf{J}\) 可逆）</td>
+                    <td>低（需要 <math class="math-inline" aria-label="J 转置乘 J"><mrow><msup><mi>J</mi><mi>T</mi></msup><mi>J</mi></mrow></math> 可逆）</td>
                     <td>否（用Jacobian近似Hessian）</td>
                     <td>SLAM Bundle Adjustment、点云配准</td>
                 </tr>
@@ -148,7 +238,7 @@
             </tbody>
         </table>
 
-        <h3>3.6 数值优化实战</h3>
+        <h2>3.6 数值优化实战</h2>
 
         <p>最后，我们用Python实际演示一下梯度下降和Levenberg-Marquardt在机器人优化中的应用场景。假设我们要优化一个2自由度的机械臂，使其末端达到目标位置：</p>
 
@@ -228,12 +318,24 @@ print(f"LM结果: q={q_lm}, pos={forward_kinematics(q_lm)}")</code></pre>
 
         <p>到这里，微积分与优化的基础就讲完了。我们从导数讲到Jacobian，从凸优化讲到Levenberg-Marquardt，最后用Python实现了完整的最小二乘优化流程。有了数学工具，我们来面对机器人学中最核心的问题——<strong>不确定性</strong>。在真实世界中，传感器有噪声，执行器有误差，我们需要概率论来量化和管理这种不确定性。下一章见。</p>
 
+        <section id="references">
+            <h2>3.7 延伸阅读与出处</h2>
+            <ul>
+                <li>S. Boyd 与 L. Vandenberghe，<a href="https://web.stanford.edu/~boyd/cvxbook/">Convex Optimization</a>（免费教材，本章凸优化部分的依据）。</li>
+                <li>D. W. Marquardt，<em>An Algorithm for Least-Squares Estimation of Nonlinear Parameters</em>，SIAM 1963，<a href="https://doi.org/10.1137/0111030">doi:10.1137/0111030</a>（LM 算法的原始论文）。</li>
+                <li>K. Madsen、H. B. Nielsen 与 O. Tingleff，<em>Methods for Non-Linear Least Squares Problems</em>（DTU 讲义，Gauss-Newton 与 LM 的标准推导，含阻尼项 λ 的自适应策略）。</li>
+                <li>g2o、Ceres Solver 与 GTSAM 的官方文档：<a href="https://ceres-solver.org/">ceres-solver.org</a>（LM 在 Bundle Adjustment 中的工程实现）。</li>
+                <li>Kevin M. Lynch 与 Frank C. Park，<a href="https://hades.mech.northwestern.edu/index.php/Modern_Robotics">Modern Robotics</a>（雅可比与速度运动学的标准推导）。</li>
+            </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="02.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="04.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
