@@ -273,98 +273,192 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1><span class="emoji"></span><span class="title-text"></span></h1>
-        <div class="sub"></div>
+        <h1><span class="emoji">🤖</span><span class="title-text">机器人学 · 从入门到精通</span></h1>
+        <div class="sub">📘 28章 实战体系</div>
     </div>
 
-    <div id="cardContainer" class="course-grid"></div>
+    <main id="content">
+    <h2>四阶段学习路线</h2>
+    <figure>
+        <svg role="img" aria-labelledby="path-title path-desc" viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+            <title id="path-title">四阶段学习路线</title>
+            <desc id="path-desc">四个阶段依次排列：数学地基（第2至4章）、核心机器人学（第5至14章）、智能机器人（第15至22章）、专业前沿（第23至28章），箭头表示由基础到前沿的递进。</desc>
+            <rect width="640" height="190" rx="18" fill="#f6fbf4"/>
+            <defs><marker id="path-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker></defs>
+            <g stroke="#334155" stroke-width="3" marker-end="url(#path-arrow)">
+                <path d="M155 95 H172"/><path d="M315 95 H332"/><path d="M475 95 H492"/>
+            </g>
+            <g font-family="'PingFang SC','Microsoft YaHei',system-ui,sans-serif" text-anchor="middle">
+                <g><rect x="20" y="62" width="135" height="66" rx="14" fill="#d6f1eb" stroke="#0e7490" stroke-width="2.5"/><text x="87" y="92" font-size="18" fill="#0f172a">数学地基</text><text x="87" y="114" font-size="13" fill="#475569">第 2–4 章</text></g>
+                <g><rect x="180" y="62" width="135" height="66" rx="14" fill="#ffecd9" stroke="#c2410c" stroke-width="2.5"/><text x="247" y="92" font-size="18" fill="#0f172a">核心机器人学</text><text x="247" y="114" font-size="13" fill="#475569">第 5–14 章</text></g>
+                <g><rect x="340" y="62" width="135" height="66" rx="14" fill="#ebe5ff" stroke="#6d28d9" stroke-width="2.5"/><text x="407" y="92" font-size="18" fill="#0f172a">智能机器人</text><text x="407" y="114" font-size="13" fill="#475569">第 15–22 章</text></g>
+                <g><rect x="500" y="62" width="120" height="66" rx="14" fill="#e0f2fe" stroke="#0369a1" stroke-width="2.5"/><text x="560" y="92" font-size="18" fill="#0f172a">专业前沿</text><text x="560" y="114" font-size="13" fill="#475569">第 23–28 章</text></g>
+            </g>
+        </svg>
+        <figcaption>四阶段学习路线。左边是最基础的数学工具，右边是前沿专题；每一个阶段都以可验证的里程碑收尾，箭头方向表示知识依赖关系——后面的章节会反复用到前面的概念。</figcaption>
+    </figure>
+    <h2>课程目录（28 章）</h2>
+    <nav id="cardContainer" class="course-grid" aria-label="课程章节导航">
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">01</span><span class="card-title">机器人学概述</span></div>
+            <ul class="topic-list"><li>发展历史</li><li>机器人分类</li><li>2026技术全景</li><li>学习路线</li></ul>
+            <div class="card-footer"><a href="01.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">02</span><span class="card-title">线性代数基础</span></div>
+            <ul class="topic-list"><li>向量与矩阵</li><li>坐标变换</li><li>特征值分解</li><li>SVD</li></ul>
+            <div class="card-footer"><a href="02.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">03</span><span class="card-title">微积分与优化基础</span></div>
+            <ul class="topic-list"><li>导数与梯度</li><li>雅可比矩阵</li><li>凸优化</li><li>非线性最小二乘</li></ul>
+            <div class="card-footer"><a href="03.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">04</span><span class="card-title">概率与状态估计</span></div>
+            <ul class="topic-list"><li>贝叶斯定理</li><li>高斯分布</li><li>卡尔曼滤波</li><li>粒子滤波</li></ul>
+            <div class="card-footer"><a href="04.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">05</span><span class="card-title">刚体运动与空间描述</span></div>
+            <ul class="topic-list"><li>位姿表示</li><li>欧拉角与四元数</li><li>齐次变换矩阵</li><li>DH参数</li></ul>
+            <div class="card-footer"><a href="05.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">06</span><span class="card-title">机器人机构学基础</span></div>
+            <ul class="topic-list"><li>自由度计算</li><li>关节类型</li><li>工作空间</li><li>灵巧度</li></ul>
+            <div class="card-footer"><a href="06.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">07</span><span class="card-title">传感器与执行器</span></div>
+            <ul class="topic-list"><li>编码器与IMU</li><li>力/力矩传感器</li><li>视觉传感器</li><li>电机与驱动</li></ul>
+            <div class="card-footer"><a href="07.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">08</span><span class="card-title">正向运动学</span></div>
+            <ul class="topic-list"><li>FK计算</li><li>DH参数实战</li><li>变换链</li><li>URDF建模</li></ul>
+            <div class="card-footer"><a href="08.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">09</span><span class="card-title">逆向运动学</span></div>
+            <ul class="topic-list"><li>解析法IK</li><li>数值法IK</li><li>雅可比伪逆</li><li>IKFast</li></ul>
+            <div class="card-footer"><a href="09.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">10</span><span class="card-title">微分运动学与雅可比</span></div>
+            <ul class="topic-list"><li>几何雅可比</li><li>分析雅可比</li><li>奇异性分析</li><li>可操作度</li></ul>
+            <div class="card-footer"><a href="10.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">11</span><span class="card-title">刚体动力学</span></div>
+            <ul class="topic-list"><li>Newton-Euler方程</li><li>Lagrange方法</li><li>RNEA</li><li>质量矩阵</li></ul>
+            <div class="card-footer"><a href="11.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">12</span><span class="card-title">轨迹生成</span></div>
+            <ul class="topic-list"><li>关节空间规划</li><li>梯形速度曲线</li><li>样条插值</li><li>时间最优</li></ul>
+            <div class="card-footer"><a href="12.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">13</span><span class="card-title">PID与反馈控制</span></div>
+            <ul class="topic-list"><li>PID原理与调参</li><li>前馈控制</li><li>级联控制</li><li>抗积分饱和</li></ul>
+            <div class="card-footer"><a href="13.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">14</span><span class="card-title">先进控制方法</span></div>
+            <ul class="topic-list"><li>计算力矩控制</li><li>阻抗/导纳控制</li><li>MPC</li><li>WBC</li></ul>
+            <div class="card-footer"><a href="14.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">15</span><span class="card-title">ROS 2核心编程</span></div>
+            <ul class="topic-list"><li>节点/话题/服务</li><li>DDS通信</li><li>TF2坐标变换</li><li>Launch文件</li></ul>
+            <div class="card-footer"><a href="15.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">16</span><span class="card-title">机器人仿真</span></div>
+            <ul class="topic-list"><li>MuJoCo</li><li>Isaac Sim</li><li>Gazebo对比</li><li>域随机化</li></ul>
+            <div class="card-footer"><a href="16.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">17</span><span class="card-title">MoveIt 2与运动规划</span></div>
+            <ul class="topic-list"><li>MoveIt 2架构</li><li>碰撞检测</li><li>OMPL</li><li>运动学约束</li></ul>
+            <div class="card-footer"><a href="17.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">18</span><span class="card-title">机器人标定与参数辨识</span></div>
+            <ul class="topic-list"><li>运动学标定</li><li>动力学参数辨识</li><li>手眼标定</li><li>传感器标定</li></ul>
+            <div class="card-footer"><a href="18.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">19</span><span class="card-title">SLAM原理与实践</span></div>
+            <ul class="topic-list"><li>EKF-SLAM</li><li>图优化</li><li>回环检测</li><li>ORB-SLAM3/Cartographer</li></ul>
+            <div class="card-footer"><a href="19.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">20</span><span class="card-title">路径与轨迹规划</span></div>
+            <ul class="topic-list"><li>A*/Dijkstra</li><li>RRT/RRT*</li><li>PRM</li><li>轨迹优化</li></ul>
+            <div class="card-footer"><a href="20.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">21</span><span class="card-title">机器人视觉</span></div>
+            <ul class="topic-list"><li>相机模型</li><li>特征提取</li><li>目标检测</li><li>3D视觉</li></ul>
+            <div class="card-footer"><a href="21.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">22</span><span class="card-title">机器人学习</span></div>
+            <ul class="topic-list"><li>模仿学习</li><li>强化学习</li><li>Sim-to-Real</li><li>Diffusion Policy</li></ul>
+            <div class="card-footer"><a href="22.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">23</span><span class="card-title">机器人调试与诊断</span></div>
+            <ul class="topic-list"><li>日志与可视化</li><li>rqt工具链</li><li>ros2 bag</li><li>性能分析</li></ul>
+            <div class="card-footer"><a href="23.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">24</span><span class="card-title">嵌入式与实时系统</span></div>
+            <ul class="topic-list"><li>FreeRTOS</li><li>micro-ROS</li><li>EtherCAT/CAN</li><li>硬实时</li></ul>
+            <div class="card-footer"><a href="24.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">25</span><span class="card-title">真机部署与集成</span></div>
+            <ul class="topic-list"><li>Sim-to-Real</li><li>系统集成测试</li><li>安全规范</li><li>CI/CD</li></ul>
+            <div class="card-footer"><a href="25.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">26</span><span class="card-title">人形与四足机器人</span></div>
+            <ul class="topic-list"><li>双足行走</li><li>全身控制</li><li>locomotion</li><li>商业化进展</li></ul>
+            <div class="card-footer"><a href="26.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">27</span><span class="card-title">具身智能与VLA大模型</span></div>
+            <ul class="topic-list"><li>VLA架构</li><li>RT-2/π₀/OpenVLA</li><li>基础模型</li><li>通用操作</li></ul>
+            <div class="card-footer"><a href="27.html">开始学习</a></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="chapter-num">28</span><span class="card-title">综合项目实战</span></div>
+            <ul class="topic-list"><li>需求分析</li><li>方案设计</li><li>系统集成</li><li>动手实现</li></ul>
+            <div class="card-footer"><a href="28.html">开始学习</a></div>
+        </div>
+    </nav>
 
     <div style="text-align:center;">
-        <div class="footer"></div>
+        <div class="footer"><span>28章</span> 实战体系 · 从入门到精通</div>
     </div>
+
+    <section id="references">
+        <h2>如何使用本课程</h2>
+        <p>直接打开任意一章即可离线阅读，无需安装依赖或启动服务器；每章末尾都有“上一章 / 目录 / 下一章”导航。涉及具体指标、参数与来源的表述都以课内引用为准，教学简化会在正文中标注。</p>
+        <h2>参考与说明</h2>
+        <ul>
+            <li>课程正文以 <a href="https://hades.mech.northwestern.edu/index.php/Modern_Robotics">Modern Robotics</a>、<a href="https://probabilistic-robotics.informatik.uni-freiburg.de/">Probabilistic Robotics</a> 等公开教材为参考框架。</li>
+            <li>各章的具体论文来源见该章末的“延伸阅读与出处”小节。</li>
+        </ul>
+    </section>
+    </main>
 </div>
 
-<script>
-    (function() {
-        var container = document.getElementById('cardContainer');
-        var emojiEl = document.querySelector('.header .emoji');
-        var titleEl = document.querySelector('.header .title-text');
-        var subEl = document.querySelector('.header .sub');
-        var footerEl = document.querySelector('.footer');
 
-        function showError(msg) {
-            container.innerHTML = '<div class="state-msg error">' + msg + '</div>';
-        }
 
-        fetch('courses.json')
-            .then(function(res) {
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                return res.json();
-            })
-            .then(function(data) {
-                document.title = data.title + ' · 课程目录';
-                emojiEl.textContent = data.emoji;
-                titleEl.textContent = data.title;
-                subEl.textContent = data.subtitle;
-                footerEl.innerHTML = '<span>' + data.chapterCount + '章</span> 实战体系 · 从入门到精通';
 
-                if (!data.chapters || data.chapters.length === 0) {
-                    showError('暂无课程数据');
-                    return;
-                }
-
-                container.innerHTML = '';
-                data.chapters.forEach(function(course) {
-                    var card = document.createElement('div');
-                    card.className = 'card';
-
-                    var headerDiv = document.createElement('div');
-                    headerDiv.className = 'card-header';
-
-                    var numSpan = document.createElement('span');
-                    numSpan.className = 'chapter-num';
-                    numSpan.textContent = course.num;
-
-                    var titleSpan = document.createElement('span');
-                    titleSpan.className = 'card-title';
-                    titleSpan.textContent = course.title;
-
-                    headerDiv.appendChild(numSpan);
-                    headerDiv.appendChild(titleSpan);
-                    card.appendChild(headerDiv);
-
-                    if (course.topics && course.topics.length > 0) {
-                        var topicUl = document.createElement('ul');
-                        topicUl.className = 'topic-list';
-                        course.topics.forEach(function(topic) {
-                            var li = document.createElement('li');
-                            li.textContent = topic;
-                            topicUl.appendChild(li);
-                        });
-                        card.appendChild(topicUl);
-                    }
-
-                    var footerDiv = document.createElement('div');
-                    footerDiv.className = 'card-footer';
-                    var link = document.createElement('a');
-                    link.href = course.file;
-                    link.textContent = '开始学习 ';
-                    footerDiv.appendChild(link);
-                    card.appendChild(footerDiv);
-
-                    container.appendChild(card);
-                });
-            })
-            .catch(function(err) {
-                showError('课程数据加载失败: ' + err.message + '。请刷新页面重试。');
-            });
-    })();
-</script>
-
-<noscript>
-    <div style="background:#fcf0d9; padding:1rem; border-radius:20px; text-align:center; color:#92400e;">
-        请启用 JavaScript 以浏览课程目录。
-    </div>
-</noscript>
 </body>
 </html>
