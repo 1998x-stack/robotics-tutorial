@@ -3,13 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <meta name="color-scheme" content="light">
     <title>第19章 SLAM原理与实践</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .math-equation { max-width: 100%; min-width: 0; margin: 1.6rem 0; padding: .5rem 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .math-scroll { display: block; max-width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; }
+        .math-scroll:focus-visible { outline: 3px solid #147f80; outline-offset: 2px; }
+        .math-scroll math[display="block"] { width: max-content; min-width: 100%; font-size: clamp(1.05rem, 2.2vw, 1.3rem); }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } .math-scroll { overflow: visible; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,21 +58,26 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第19章 SLAM原理与实践</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第19章 SLAM原理与实践</h1>
 
         <p>大家好，我是你们的讲师。这一章我们来聊一个让无数机器人工程师又爱又恨的话题——<strong>SLAM（Simultaneous Localization and Mapping，同时定位与建图）</strong>。想象一下：你被蒙上眼睛扔进一个陌生建筑，手里只有一张白纸和一支笔，要一边摸索着画地图、一边搞清自己在地图上的位置——这就是SLAM要解决的问题。更"残酷"的是：没有地图你就没法准确定位，没有准确定位你就画不出地图。这个"先有鸡还是先有蛋"的悖论，正是SLAM的核心挑战。</p>
 
         <p>为什么SLAM对机器人如此重要？因为任何自主移动机器人的第一步都是回答三个问题："我在哪？""周围有什么？""我该怎么走？"——前两个问题正是SLAM的回答。2026年的今天，SLAM技术已经相当成熟：扫地机器人用低成本的激光SLAM就能在几十平米的房间里精准导航，自动驾驶汽车在城市级尺度上运行视觉SLAM，无人机在GPS拒止环境下依靠VIO（Visual-Inertial Odometry）飞行。不管你未来做的是轮式机器人、四足机器人还是人形机器人，SLAM都是一道绕不过去的坎。这一章我们从数学原理出发，一步步看到实战运行一个完整的SLAM系统。</p>
 
-        <h3>19.1 SLAM问题的数学建模</h3>
+        <h2>19.1 SLAM问题的数学建模</h2>
 
-        <p>先来给SLAM一个正式的数学定义。SLAM要解决的问题是：给定一系列控制输入 \( u_{1:t} \) 和传感器观测 \( z_{1:t} \)，同时估计机器人的轨迹 \( x_{1:t} \) 和环境地图 \( m \)。用概率的语言表达就是求后验概率分布：</p>
+        <p>先来给SLAM一个正式的数学定义。SLAM要解决的问题是：给定一系列控制输入 <math class="math-inline" aria-label="控制输入序列 u 1 到 t"><msub><mi>u</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub></math> 和传感器观测 <math class="math-inline" aria-label="观测序列 z 1 到 t"><msub><mi>z</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub></math>，同时估计机器人的轨迹 <math class="math-inline" aria-label="位姿序列 x 1 到 t"><msub><mi>x</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub></math> 和环境地图 <math class="math-inline" aria-label="环境地图 m"><mi>m</mi></math>。用概率的语言表达就是求后验概率分布：</p>
 
-        <p><strong>\( p(x_{1:t}, m \mid z_{1:t}, u_{1:t}) \)</strong></p>
+        <div class="math-equation" role="group" aria-label="SLAM 的后验概率">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="SLAM 的后验概率，可横向滚动">
+                <math display="block" aria-label="SLAM 的后验概率"><mi>p</mi><mo>(</mo><msub><mi>x</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>,</mo><mi>m</mi><mo>|</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>,</mo><msub><mi>u</mi><mrow><mn>1</mn><mo>:</mo><mi>t</mi></mrow></msub><mo>)</mo></math>
+            </div>
+        </div>
 
-        <p>其中 \( x_t \) 是机器人t时刻的位姿（pose），\( m \) 是环境地图（可以是特征点地图、栅格地图或拓扑地图）。这看起来就是一个标准的贝叶斯滤波问题，但特殊之处在于地图 m 的维数随着探索范围的增大而增长——这让问题复杂度变得非常棘手。</p>
+        <p>其中 <math class="math-inline" aria-label="t 时刻位姿 x t"><msub><mi>x</mi><mi>t</mi></msub></math> 是机器人t时刻的位姿（pose），<math class="math-inline" aria-label="环境地图 m"><mi>m</mi></math> 是环境地图（可以是特征点地图、栅格地图或拓扑地图）。这看起来就是一个标准的贝叶斯滤波问题，但特殊之处在于地图 m 的维数随着探索范围的增大而增长——这让问题复杂度变得非常棘手。</p>
 
         <p>SLAM的"鸡和蛋"困境体现在哪里呢？如果你知道精确的地图 m，那定位就只是一个简单的状态估计问题——用观测匹配到地图上即可。反过来，如果你知道精确的位姿 x，那么建图就只是把观测数据"拼"到全局坐标系中。但问题是——你两者都不知道。你必须同时求解，而且求解过程中的任何一个误差都会被放大和传播。</p>
 
@@ -66,21 +88,25 @@
             <p>几年前我给一个仓储机器人部署SLAM系统，仓库的货架布局非常规整——每排货架几乎一模一样，间距相同，标志物也都是相同的二维码。运行EKF-SLAM时，机器人偶尔会把A排误认为B排，因为观测到的特征在几何上几乎完全一致。结果机器人的位置估计跳到了另一排货架，然后在"以为自己在的位置"和"实际在的位置"之间反复震荡，最后彻底迷失。这个问题的根源是<strong>对称环境</strong>导致的数据关联歧义——仅仅靠距离观测无法区分哪一排是哪一排。最终我们加入了一个微弱的地磁特征作为辅助，才解决了这个问题。这件事让我明白：SLAM不只是算法问题，还是传感器融合和场景理解的问题。</p>
         </div>
 
-        <h3>19.2 EKF-SLAM</h3>
+        <h2>19.2 EKF-SLAM</h2>
 
         <p>EKF-SLAM（扩展卡尔曼滤波SLAM）是SLAM领域里程碑式的工作，由Hugh Durrant-Whyte和John J. Leonard等人在1990年代提出。它的核心思想很直接：把卡尔曼滤波从定位扩展到同时定位+建图。</p>
 
         <p>具体怎么做呢？EKF-SLAM维护一个<strong>增广状态向量（Augmented State Vector）</strong>，其中不仅包含机器人的位姿，还包含所有地图特征点的坐标：</p>
 
-        <p><strong>\( \mathbf{x} = [x_{\text{robot}}, y_{\text{robot}}, \theta_{\text{robot}}, l_1^x, l_1^y, l_2^x, l_2^y, \dots, l_n^x, l_n^y]^T \)</strong></p>
+        <div class="math-equation" role="group" aria-label="EKF-SLAM 的增广状态向量">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="EKF-SLAM 的增广状态向量，可横向滚动">
+                <math display="block" aria-label="EKF-SLAM 的增广状态向量"><mi>x</mi><mo>=</mo><msup><mrow><mo>[</mo><msub><mi>x</mi><mtext>robot</mtext></msub><mo>,</mo><msub><mi>y</mi><mtext>robot</mtext></msub><mo>,</mo><msub><mi>θ</mi><mtext>robot</mtext></msub><mo>,</mo><msubsup><mi>l</mi><mn>1</mn><mi>x</mi></msubsup><mo>,</mo><msubsup><mi>l</mi><mn>1</mn><mi>y</mi></msubsup><mo>,</mo><mo>…</mo><mo>,</mo><msubsup><mi>l</mi><mi>n</mi><mi>x</mi></msubsup><mo>,</mo><msubsup><mi>l</mi><mi>n</mi><mi>y</mi></msubsup><mo>]</mo></mrow><mi>T</mi></msup></math>
+            </div>
+        </div>
 
-        <p>同时维护一个全协方差矩阵 \( \Sigma \)，编码了所有变量之间的相关性。这个全协方差矩阵是EKF-SLAM最优雅也最致命的特征——它包含了机器人位姿和每个路标之间的协方差，理论上是最优的贝叶斯估计。但代价是协方差矩阵的大小是 \( O(n^2) \)，其中 n 是路标数量。当路标数量达到数千甚至数万时，存储和更新这个矩阵就变得不可接受了。</p>
+        <p>同时维护一个全协方差矩阵 <math class="math-inline" aria-label="协方差矩阵 Σ"><mi>Σ</mi></math>，编码了所有变量之间的相关性。这个全协方差矩阵是EKF-SLAM最优雅也最致命的特征——它包含了机器人位姿和每个路标之间的协方差，理论上是最优的贝叶斯估计。但代价是协方差矩阵的大小是 <math class="math-inline" aria-label="时间复杂度 O n 平方"><mrow><mi>O</mi><mo>(</mo><msup><mi>n</mi><mn>2</mn></msup><mo>)</mo></mrow></math>，其中 n 是路标数量。当路标数量达到数千甚至数万时，存储和更新这个矩阵就变得不可接受了。</p>
 
         <p>EKF-SLAM的更新流程分为预测和更新两步。预测阶段：根据控制输入（如里程计）预测机器人位姿，协方差同步增大（不确定性扩散）。更新阶段：当观测到一个路标时，计算观测残差和卡尔曼增益，然后同时更新机器人位姿和路标位置。</p>
 
         <p>这里有一个在实践中非常容易踩的坑：EKF-SLAM假设了<strong>高斯噪声</strong>和<strong>线性的运动/观测模型</strong>（通过一阶泰勒展开近似）。实际机器人的运动模型往往是非线性的，泰勒展开的线性近似在强非线性场景下（例如急转弯、加速度剧烈变化）会产生显著的线性化误差，导致滤波器发散。这就是为什么EKF-SLAM在小尺度、准静态环境中表现很好，但一到大规模环境就力不从心。</p>
 
-        <h3>19.3 图优化与因子图</h3>
+        <h2>19.3 图优化与因子图</h2>
 
         <p>EKF-SLAM的最大问题是它在维护全协方差矩阵时做了很多"无用功"——实际SLAM中，机器人位姿之间并不是全连接的，大多数约束只存在于时间上相邻的位姿之间。这就引出了更优雅的<strong>图优化（Graph Optimization）</strong>方法。</p>
 
@@ -88,11 +114,47 @@
 
         <p><strong>因子图（Factor Graph）</strong>是对位姿图的进一步推广。在因子图中，节点分为两种：状态变量节点（需要估计的变量，即位姿和路标）和因子节点（对变量施加约束的函数）。每个因子代表一个概率约束，整个图的联合概率密度就是所有因子的乘积。SLAM问题等价于求因子图中使联合概率最大的变量配置——即最大后验估计（MAP）。</p>
 
+        <figure>
+            <svg role="img" aria-labelledby="fig19a-title fig19a-desc" viewBox="0 0 640 310" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig19a-title">SLAM 的因子图结构</title>
+                <desc id="fig19a-desc">五个位姿节点 x1 到 x5 沿轨迹排列，相邻位姿之间用里程计因子（小方块）连接；一个路标节点 m1 通过观测因子与 x2、x3 相连；x5 与 x1 之间有一条虚线闭环因子，将累积漂移拉回。</desc>
+                <rect width="640" height="310" rx="18" fill="#f8fbf7"/>
+                <g stroke="#94a3b8" stroke-width="2.5">
+                    <path d="M90 200 L190 120"/><path d="M190 120 L300 90"/><path d="M300 90 L410 120"/><path d="M410 120 L520 200"/>
+                    <path d="M250 225 L190 120" stroke-dasharray="5 5"/><path d="M250 225 L300 90" stroke-dasharray="5 5"/>
+                </g>
+                <path d="M520 200 Q305 300 90 200" fill="none" stroke="#c2410c" stroke-width="3" stroke-dasharray="9 7"/>
+                <g fill="#f59e0b" stroke="#b45309" stroke-width="2">
+                    <rect x="132" y="152" width="16" height="16" rx="3"/>
+                    <rect x="237" y="97" width="16" height="16" rx="3"/>
+                    <rect x="347" y="97" width="16" height="16" rx="3"/>
+                    <rect x="457" y="152" width="16" height="16" rx="3"/>
+                    <rect x="212" y="164" width="14" height="14" rx="3"/>
+                    <rect x="278" y="152" width="14" height="14" rx="3"/>
+                </g>
+                <g fill="#d6f1eb" stroke="#0e7490" stroke-width="3">
+                    <circle cx="90" cy="200" r="22"/><circle cx="190" cy="120" r="22"/><circle cx="300" cy="90" r="22"/>
+                    <circle cx="410" cy="120" r="22"/><circle cx="520" cy="200" r="22"/>
+                </g>
+                <circle cx="250" cy="225" r="20" fill="#ebe5ff" stroke="#6d28d9" stroke-width="3"/>
+                <g fill="#0f172a" font-size="16" text-anchor="middle" font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="90" y="206">x1</text><text x="190" y="126">x2</text><text x="300" y="96">x3</text>
+                    <text x="410" y="126">x4</text><text x="520" y="206">x5</text><text x="250" y="231" font-size="14">m1</text>
+                </g>
+                <g fill="#475569" font-size="15" font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="150" y="262">闭环因子</text>
+                    <text x="486" y="150">里程计因子</text>
+                    <text x="330" y="290" text-anchor="middle" fill="#c2410c">闭环约束拉回漂移</text>
+                </g>
+            </svg>
+            <figcaption>SLAM 的因子图。<strong>圆形是待估变量</strong>（机器人位姿 x1–x5 与路标 m1），<strong>方块是因子</strong>（对变量的约束：里程计、观测与闭环）。整个图的联合概率是所有因子的乘积，求解即调整圆圈位置使所有约束误差平方和最小；闭环因子让整条轨迹一次性被“拉直”。</figcaption>
+        </figure>
+
         <p>图优化SLAM的核心优势在于稀疏性。虽然整体问题的规模可能很大，但信息矩阵（Hessian矩阵）是高度稀疏的——因为每个约束只涉及少数几个变量。利用稀疏性，现代SLAM系统可以高效地求解数万乃至数十万个位姿节点的大规模问题。常用的后端优化库包括<strong>g2o</strong>（General Graph Optimization）和<strong>Ceres Solver</strong>（Google出品）。g2o是SLAM社区的老牌工具，提供了丰富的顶点和边类型，特别适合视觉SLAM和激光SLAM的后端优化。Ceres则更加通用，支持自动微分，在复杂优化问题上更加灵活。</p>
 
         <p>闭环检测（Loop Closure）是图优化SLAM的"大招"。当机器人识别出回到之前来过的地方时，会在两个非相邻的位姿之间添加一条闭环边。这条边的"拉力"会通过图优化传播到整个轨迹上，一次性修正大量累积漂移。我在一个实际项目中测试过：一个300米长的走廊在闭环前累积了约4米的漂移，加入闭环边后整个轨迹"啪"地一下被拉回正确位置——那种感觉非常治愈。</p>
 
-        <h3>19.4 现代SLAM系统</h3>
+        <h2>19.4 现代SLAM系统</h2>
 
         <p>2026年的SLAM生态系统已经非常丰富，不同的传感器组合和场景有各自的最优选择。我挑三个最具代表性的系统来讲：</p>
 
@@ -155,7 +217,7 @@
             </tr>
         </table>
 
-        <h3>19.5 实战：从g2o优化到Cartographer演示</h3>
+        <h2>19.5 实战：从g2o优化到Cartographer演示</h2>
 
         <p>理论讲完了，我们来动手做两件事：先用g2o在Python里跑一个简单的位姿图优化，再带你走一遍Cartographer的实机运行流程。</p>
 
@@ -241,12 +303,24 @@ rviz2 -d /path/to/cartographer_demo.rviz</code></pre>
 
         <p>有了地图，机器人下一个迫切需求就是——"怎么从A点走到B点？"这就是下一章的核心主题：<strong>路径与轨迹规划</strong>。我们会讨论A*、RRT、DWA等一系列规划算法，并教你在机器人上实现从全局规划到局部避障的完整管线。下一章见。</p>
 
+        <section id="references">
+            <h2>19.6 延伸阅读与出处</h2>
+            <ul>
+                <li>S. Thrun、W. Burgard 与 D. Fox，<a href="https://probabilistic-robotics.informatik.uni-freiburg.de/">Probabilistic Robotics</a>（EKF-SLAM 与 FastSLAM 的标准推导）。</li>
+                <li>G. Grisetti 等人，<em>A Tutorial on Graph-based SLAM</em>，IEEE ITS Magazine 2010，<a href="https://doi.org/10.1109/MITS.2010.939925">doi:10.1109/MITS.2010.939925</a>（位姿图与因子图优化的入门综述）。</li>
+                <li>C. Campos 等人，ORB-SLAM3，<a href="https://arxiv.org/abs/2007.11898">arXiv:2007.11898</a>。</li>
+                <li>W. Hess 等人，<em>Real-Time Loop Closure in 2D LIDAR SLAM</em>（Cartographer），ICRA 2016，<a href="https://doi.org/10.1109/ICRA.2016.7487258">doi:10.1109/ICRA.2016.7487258</a>。</li>
+                <li>W. Xu 等人，FAST-LIO2，<a href="https://arxiv.org/abs/2107.06829">arXiv:2107.06829</a>。</li>
+            </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="18.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="20.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
