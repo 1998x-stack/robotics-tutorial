@@ -3,13 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <meta name="color-scheme" content="light">
     <title>第2章 线性代数基础</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .math-equation { max-width: 100%; min-width: 0; margin: 1.6rem 0; padding: .5rem 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+        .math-scroll { display: block; max-width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; }
+        .math-scroll:focus-visible { outline: 3px solid #147f80; outline-offset: 2px; }
+        .math-scroll math[display="block"] { width: max-content; min-width: 100%; font-size: clamp(1.05rem, 2.2vw, 1.3rem); }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } .math-scroll { overflow: visible; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,35 +58,36 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第2章 线性代数基础</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第2章 线性代数基础</h1>
 
         <p>大家好，我是你们的讲师。在开始这一章之前，我想让你做一个小实验：伸出一只手，指尖指向天花板，然后慢慢将手臂旋转——你刚刚做的事情，在数学上就是一个旋转变换，而描述这个变换的工具，正是线性代数。在机器人学中，从机械臂末端执行器的位置解算，到LiDAR点云的配准，再到SLAM中的图优化，线性代数无处不在。毫不夸张地说，<strong>线性代数就是机器人学的"普通话"</strong>——不会这门语言，你连机器人的基本动作都描述不清楚。</p>
 
         <p>我见过太多初学机器人的同学，在刚接触到旋转矩阵、齐次坐标这些概念时就打了退堂鼓，觉得"我是做算法的，数学差不多就行了"。结果到了写逆运动学代码时，发现自己连Jacobian矩阵的维度都搞不清楚，更别说理解奇异值分解在其中的作用了。这一章，我会带着你把这些概念一个一个啃下来，而且——我保证——会很直观。</p>
 
-        <h3>2.1 向量与向量空间</h3>
+        <h2>2.1 向量与向量空间</h2>
 
-        <p>在机器人学中，<strong>向量（Vector）</strong>是最基本也是最重要的数学对象。机械臂末端的位置是一个三维向量 \((x, y, z)\)，末端执行器的线速度是一个三维向量 \((v_x, v_y, v_z)\)，施加在关节上的力同样可以用向量表示。</p>
+        <p>在机器人学中，<strong>向量（Vector）</strong>是最基本也是最重要的数学对象。机械臂末端的位置是一个三维向量 <math class="math-inline" aria-label="三维坐标 x y z"><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>z</mi><mo>)</mo></mrow></math>，末端执行器的线速度是一个三维向量 <math class="math-inline" aria-label="速度分量 v x v y v z"><mrow><mo>(</mo><msub><mi>v</mi><mi>x</mi></msub><mo>,</mo><msub><mi>v</mi><mi>y</mi></msub><mo>,</mo><msub><mi>v</mi><mi>z</mi></msub><mo>)</mo></mrow></math>，施加在关节上的力同样可以用向量表示。</p>
 
-        <p>向量的两个核心运算是<strong>点积（Dot Product）</strong>和<strong>叉积（Cross Product）</strong>。点积 \(\mathbf{a} \cdot \mathbf{b} = \|\mathbf{a}\|\|\mathbf{b}\|\cos\theta\) 衡量了两个向量的对齐程度——当你用点积判断机器人是否正对着目标物体时，实际上就是在用这个几何意义。叉积 \(\mathbf{a} \times \mathbf{b}\) 则生成一个垂直于 \(\mathbf{a}\) 和 \(\mathbf{b}\) 的向量，其模长等于两个向量围成的平行四边形面积。叉积在机器人学中的一个重要应用是计算力矩：\(\boldsymbol{\tau} = \mathbf{r} \times \mathbf{F}\)。</p>
+        <p>向量的两个核心运算是<strong>点积（Dot Product）</strong>和<strong>叉积（Cross Product）</strong>。点积 <math class="math-inline" aria-label="a 点乘 b 等于两向量模长与夹角余弦之积"><mrow><mi>a</mi><mo>·</mo><mi>b</mi><mo>=</mo><mo>‖</mo><mi>a</mi><mo>‖</mo><mo>‖</mo><mi>b</mi><mo>‖</mo><mi>cos</mi><mi>θ</mi></mrow></math> 衡量了两个向量的对齐程度——当你用点积判断机器人是否正对着目标物体时，实际上就是在用这个几何意义。叉积 <math class="math-inline" aria-label="a 叉乘 b"><mrow><mi>a</mi><mo>×</mo><mi>b</mi></mrow></math> 则生成一个垂直于 <math class="math-inline" aria-label="向量 a"><mi>a</mi></math> 和 <math class="math-inline" aria-label="向量 b"><mi>b</mi></math> 的向量，其模长等于两个向量围成的平行四边形面积。叉积在机器人学中的一个重要应用是计算力矩：<math class="math-inline" aria-label="力矩 τ 等于力臂 r 叉乘力 F"><mrow><mi>τ</mi><mo>=</mo><mi>r</mi><mo>×</mo><mi>F</mi></mrow></math>。</p>
 
         <div class="highlight">
             <p><strong>直觉理解</strong>：点积回答"两个方向有多接近"，叉积回答"两个方向围成的面积有多大"。在机器人控制中，点积用于投影（比如将力投影到某个方向上），叉积用于生成垂直方向（比如从力和力臂计算力矩）。记住这两个直觉，你就能理解机器人学中90%的向量运算。</p>
         </div>
 
-        <p>再往下是<strong>向量空间（Vector Space）</strong>的概念。机器人末端在三维空间中的所有可能位置构成一个 \(\mathbb{R}^3\) 空间，所有可能的姿态构成 \(\text{SO}(3)\) 群（三维旋转群）。这些集合之所以被称为"空间"，是因为它们满足一些公理——加法和数乘封闭、存在零向量和逆向量等等。你不需要死记这些公理，只需要记住一句话：<strong>凡是可以做"加法"和"数乘"的东西，都可以看作向量</strong>。</p>
+        <p>再往下是<strong>向量空间（Vector Space）</strong>的概念。机器人末端在三维空间中的所有可能位置构成一个 <math class="math-inline" aria-label="三维实向量空间 R 三次方"><msup><mi>ℝ</mi><mn>3</mn></msup></math> 空间，所有可能的姿态构成 <math class="math-inline" aria-label="特殊正交群 SO(3)"><mrow><mi>SO</mi><mo>(</mo><mn>3</mn><mo>)</mo></mrow></math> 群（三维旋转群）。这些集合之所以被称为"空间"，是因为它们满足一些公理——加法和数乘封闭、存在零向量和逆向量等等。你不需要死记这些公理，只需要记住一句话：<strong>凡是可以做"加法"和"数乘"的东西，都可以看作向量</strong>。</p>
 
-        <p>这里分享一个我当年踩过的坑。在做机械臂的轨迹插值时，我需要计算两个姿态之间的"中间姿态"。我当时想当然地对两个旋转矩阵做了线性插值 \((1-t)\mathbf{R}_1 + t\mathbf{R}_2\)，结果发现插出来的矩阵根本不是旋转矩阵（它的行列式不等于1）。后来才意识到旋转矩阵不构成向量空间——它们构成的是李群 \(\text{SO}(3)\)，加法不封闭，需要用特殊方法插值（比如Slerp，我们第5章会讲）。这个教训告诉我：<strong>时刻留意你操作的对象属于什么空间</strong>。</p>
+        <p>这里分享一个我当年踩过的坑。在做机械臂的轨迹插值时，我需要计算两个姿态之间的"中间姿态"。我当时想当然地对两个旋转矩阵做了线性插值 <math class="math-inline" aria-label="旋转矩阵的线性插值"><mrow><mo>(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo>)</mo><msub><mi>R</mi><mn>1</mn></msub><mo>+</mo><mi>t</mi><msub><mi>R</mi><mn>2</mn></msub></mrow></math>，结果发现插出来的矩阵根本不是旋转矩阵（它的行列式不等于1）。后来才意识到旋转矩阵不构成向量空间——它们构成的是李群 <math class="math-inline" aria-label="特殊正交群 SO(3)"><mrow><mi>SO</mi><mo>(</mo><mn>3</mn><mo>)</mo></mrow></math>，加法不封闭，需要用特殊方法插值（比如Slerp，我们第5章会讲）。这个教训告诉我：<strong>时刻留意你操作的对象属于什么空间</strong>。</p>
 
-        <h3>2.2 矩阵与线性变换</h3>
+        <h2>2.2 矩阵与线性变换</h2>
 
         <p>矩阵是线性代数中最重要的运算工具。在机器人学中，矩阵最基本的功能是描述<strong>线性变换</strong>——旋转、缩放、剪切、投影，这些都可以用矩阵来表示。</p>
 
-        <p>一个三维旋转矩阵 \(\mathbf{R} \in \mathbb{R}^{3 \times 3}\) 满足 \(\mathbf{R}^T \mathbf{R} = \mathbf{I}\) 且 \(\det(\mathbf{R}) = 1\)，所有这样的矩阵构成特殊正交群 \(\text{SO}(3)\)。当我们说"把机械臂末端绕z轴旋转30度"，在数学上就是用一个旋转矩阵左乘以末端的位置向量。</p>
+        <p>一个三维旋转矩阵 <math class="math-inline" aria-label="R 是 3 乘 3 实矩阵"><mrow><mi>R</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow></msup></mrow></math> 满足 <math class="math-inline" aria-label="R 的转置乘 R 等于单位阵"><mrow><msup><mi>R</mi><mi>T</mi></msup><mi>R</mi><mo>=</mo><mi>I</mi></mrow></math> 且 <math class="math-inline" aria-label="R 的行列式等于 1"><mrow><mi>det</mi><mo>(</mo><mi>R</mi><mo>)</mo><mo>=</mo><mn>1</mn></mrow></math>，所有这样的矩阵构成特殊正交群 <math class="math-inline" aria-label="特殊正交群 SO(3)"><mrow><mi>SO</mi><mo>(</mo><mn>3</mn><mo>)</mo></mrow></math>。当我们说"把机械臂末端绕z轴旋转30度"，在数学上就是用一个旋转矩阵左乘以末端的位置向量。</p>
 
-        <p>矩阵乘法 \(\mathbf{C} = \mathbf{A} \mathbf{B}\) 是"变换的复合"——先做变换 \(\mathbf{B}\)，再做变换 \(\mathbf{A}\)。这一点在运动学链中至关重要：一个六轴机械臂从基座到末端的变换，就是六个关节变换矩阵的乘积。每乘一个矩阵，坐标系就沿着运动链"走"了一个关节。数学上极其简洁，物理上极其直观。</p>
+        <p>矩阵乘法 <math class="math-inline" aria-label="矩阵 C 等于 A 乘 B"><mrow><mi>C</mi><mo>=</mo><mi>A</mi><mi>B</mi></mrow></math> 是"变换的复合"——先做变换 <math class="math-inline" aria-label="矩阵 B"><mi>B</mi></math>，再做变换 <math class="math-inline" aria-label="矩阵 A"><mi>A</mi></math>。这一点在运动学链中至关重要：一个六轴机械臂从基座到末端的变换，就是六个关节变换矩阵的乘积。每乘一个矩阵，坐标系就沿着运动链"走"了一个关节。数学上极其简洁，物理上极其直观。</p>
 
         <pre><code># 机器人运动链中的矩阵复合
 T_base_to_end = T_base_to_j1 @ T_j1_to_j2 @ T_j2_to_j3 @ T_j3_to_j4 @ T_j4_to_j5 @ T_j5_to_end
@@ -78,23 +96,31 @@ T_base_to_end = T_base_to_j1 @ T_j1_to_j2 @ T_j2_to_j3 @ T_j3_to_j4 @ T_j4_to_j5
 # 矩阵乘法顺序：从左到右依次应用变换
 # 物理含义：从基座坐标系一步步"走到"末端坐标系</code></pre>
 
-        <p>值得一提的是，矩阵乘法不满足交换律——\(\mathbf{A}\mathbf{B} \neq \mathbf{B}\mathbf{A}\) 在大多数情况下成立。这对应到物理世界就是"旋转的顺序影响最终结果"：先绕x轴转90度再绕y轴转90度，和先绕y轴再绕x轴，最终姿态完全不同。很多新手在调机器人姿态时遇到"明明发了正确角度，末端位姿却不对"，多半就是旋转顺序搞错了。</p>
+        <p>值得一提的是，矩阵乘法不满足交换律——<math class="math-inline" aria-label="矩阵乘法不满足交换律"><mrow><mi>A</mi><mi>B</mi><mo>≠</mo><mi>B</mi><mi>A</mi></mrow></math> 在大多数情况下成立。这对应到物理世界就是"旋转的顺序影响最终结果"：先绕x轴转90度再绕y轴转90度，和先绕y轴再绕x轴，最终姿态完全不同。很多新手在调机器人姿态时遇到"明明发了正确角度，末端位姿却不对"，多半就是旋转顺序搞错了。</p>
 
-        <h3>2.3 特征值与特征分解</h3>
+        <h2>2.3 特征值与特征分解</h2>
 
-        <p>如果说矩阵描述了一个变换"做了什么"，那么特征值和特征向量描述了变换"在哪个方向上做了什么"——对于矩阵 \(\mathbf{A}\)，如果存在非零向量 \(\mathbf{v}\) 和标量 \(\lambda\) 使得 \(\mathbf{A}\mathbf{v} = \lambda \mathbf{v}\)，那么 \(\mathbf{v}\) 就是特征向量，\(\lambda\) 就是对应的特征值。向量 \(\mathbf{v}\) 在经过变换后只被拉伸/压缩了 \(\lambda\) 倍，方向不变。</p>
+        <p>如果说矩阵描述了一个变换"做了什么"，那么特征值和特征向量描述了变换"在哪个方向上做了什么"——对于矩阵 <math class="math-inline" aria-label="矩阵 A"><mi>A</mi></math>，如果存在非零向量 <math class="math-inline" aria-label="向量 v"><mi>v</mi></math> 和标量 <math class="math-inline" aria-label="标量 λ"><mi>λ</mi></math> 使得 <math class="math-inline" aria-label="特征方程 A v 等于 λ v"><mrow><mi>A</mi><mi>v</mi><mo>=</mo><mi>λ</mi><mi>v</mi></mrow></math>，那么 <math class="math-inline" aria-label="向量 v"><mi>v</mi></math> 就是特征向量，<math class="math-inline" aria-label="标量 λ"><mi>λ</mi></math> 就是对应的特征值。向量 <math class="math-inline" aria-label="向量 v"><mi>v</mi></math> 在经过变换后只被拉伸/压缩了 <math class="math-inline" aria-label="标量 λ"><mi>λ</mi></math> 倍，方向不变。</p>
 
-        <p>在机器人学中，特征分解最经典的应用是<strong>协方差矩阵的主成分分析（PCA）</strong>。假设你有一堆LiDAR点云数据，每个点都是三维坐标 \((x, y, z)\)。这些点的协方差矩阵 \(\mathbf{\Sigma} \in \mathbb{R}^{3 \times 3}\) 的特征向量指向数据变化最大的方向，特征值则告诉你在那个方向上的方差有多大。这在点云配准的ICP算法中用于判断对应关系，也在SLAM的数据关联中用于衡量不确定性。</p>
+        <p>在机器人学中，特征分解最经典的应用是<strong>协方差矩阵的主成分分析（PCA）</strong>。假设你有一堆LiDAR点云数据，每个点都是三维坐标 <math class="math-inline" aria-label="三维坐标 x y z"><mrow><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>,</mo><mi>z</mi><mo>)</mo></mrow></math>。这些点的协方差矩阵 <math class="math-inline" aria-label="协方差矩阵 Σ 是 3 乘 3 实矩阵"><mrow><mi>Σ</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mn>3</mn><mo>×</mo><mn>3</mn></mrow></msup></mrow></math> 的特征向量指向数据变化最大的方向，特征值则告诉你在那个方向上的方差有多大。这在点云配准的ICP算法中用于判断对应关系，也在SLAM的数据关联中用于衡量不确定性。</p>
 
         <div class="tip">
-            <p><strong>知识点</strong>：协方差矩阵 \(\mathbf{\Sigma}\) 是实对称半正定矩阵，这意味着它总有实数特征值，且特征向量互相正交。这个性质使得特征分解在数值上非常稳定——这也是为什么机器人学中的不确定性建模广泛使用高斯分布（其协方差矩阵天然具有这些良性质）。</p>
+            <p><strong>知识点</strong>：协方差矩阵 <math class="math-inline" aria-label="协方差矩阵 Σ"><mi>Σ</mi></math> 是实对称半正定矩阵，这意味着它总有实数特征值，且特征向量互相正交。这个性质使得特征分解在数值上非常稳定——这也是为什么机器人学中的不确定性建模广泛使用高斯分布（其协方差矩阵天然具有这些良性质）。</p>
         </div>
 
         <p>特征值还告诉我们一个变换的"条件数"（condition number），即最大特征值与最小特征值的比值。条件数很大的矩阵是病态的（ill-conditioned），在数值计算中会导致严重的精度损失。在逆向运动学中，当机械臂接近奇异位形时，Jacobian矩阵的条件数会趋近无穷大——这是判断奇异位形的重要数值指标。</p>
 
-        <h3>2.4 奇异值分解（SVD）</h3>
+        <h2>2.4 奇异值分解（SVD）</h2>
 
-        <p>如果只允许我选择一种矩阵分解来理解机器人学，我一定会选<strong>奇异值分解（Singular Value Decomposition）</strong>。对于任意矩阵 \(\mathbf{A} \in \mathbb{R}^{m \times n}\)，SVD将其分解为：</p>
+        <p>如果只允许我选择一种矩阵分解来理解机器人学，我一定会选<strong>奇异值分解（Singular Value Decomposition）</strong>。对于任意矩阵 <math class="math-inline" aria-label="A 是 m 乘 n 实矩阵"><mrow><mi>A</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>m</mi><mo>×</mo><mi>n</mi></mrow></msup></mrow></math>，SVD将其分解为：</p>
+
+        <div class="math-equation" role="group" aria-label="奇异值分解">
+            <div class="math-scroll" data-math-scroll tabindex="0" role="region" aria-label="SVD 分解公式，可横向滚动">
+                <math display="block" aria-label="A 等于 U 乘 S 乘 V 的转置">
+                    <mi>A</mi><mo>=</mo><mi>U</mi><mi>S</mi><msup><mi>V</mi><mo>⊤</mo></msup>
+                </math>
+            </div>
+        </div>
 
         <pre><code>A = U @ S @ V^T
 
@@ -103,17 +129,50 @@ T_base_to_end = T_base_to_j1 @ T_j1_to_j2 @ T_j2_to_j3 @ T_j3_to_j4 @ T_j4_to_j5
 # S ∈ R^(m×n) —— 奇异值对角矩阵，对角线元素 σ1 ≥ σ2 ≥ ... ≥ σr > 0
 # V ∈ R^(n×n) —— 右奇异向量，列是 A^T A 的特征向量</code></pre>
 
+        <figure>
+            <svg role="img" aria-labelledby="fig2a-title fig2a-desc" viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig2a-title">奇异值分解的几何含义</title>
+                <desc id="fig2a-desc">左侧是输入空间中的单位圆，右侧是输出空间中被他形拉伸成的椭圆；椭圆的长半轴等于最大奇异值 σ1，短半轴等于最小奇异值 σ2。中间的箭头标注 A 等于 U 乘 S 乘 V 转置。</desc>
+                <rect width="640" height="300" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig2a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                        <path d="M0 0 L10 5 L0 10 z" fill="#334155"/>
+                    </marker>
+                </defs>
+                <g stroke="#cbd5e1" stroke-width="1.5">
+                    <path d="M70 150 H210"/><path d="M140 80 V220"/>
+                    <path d="M430 150 H570"/><path d="M500 60 V240"/>
+                </g>
+                <circle cx="140" cy="150" r="70" fill="#d6f1eb" stroke="#0e7490" stroke-width="3"/>
+                <ellipse cx="500" cy="150" rx="95" ry="45" fill="#ffecd9" stroke="#c2410c" stroke-width="3"/>
+                <g stroke="#334155" stroke-width="3" marker-end="url(#fig2a-arrow)">
+                    <path d="M245 150 H395"/>
+                </g>
+                <g stroke="#c2410c" stroke-width="2.5" marker-end="url(#fig2a-arrow)">
+                    <path d="M500 150 H590"/><path d="M500 150 V65"/>
+                </g>
+                <g fill="#0f172a" font-size="17" font-family="'PingFang SC',system-ui,sans-serif" text-anchor="middle">
+                    <text x="320" y="138">A = U Σ Vᵀ</text>
+                    <text x="140" y="258">单位圆（输入方向）</text>
+                    <text x="500" y="272">椭圆（输出方向）</text>
+                    <text x="560" y="176">σ1</text>
+                    <text x="520" y="90">σ2</text>
+                </g>
+            </svg>
+            <figcaption>奇异值分解的几何含义。任意矩阵 A 对单位球的作用，都能分解为“旋转（Vᵀ）→ 沿坐标轴缩放（Σ）→ 再旋转（U）”三步；缩放量就是奇异值。<strong>最小奇异值接近零</strong>时，椭圆在一个方向上被压扁，这正是第 2.4 节所说“接近奇异/退化”的几何图像。</figcaption>
+        </figure>
+
         <p>SVD在机器人学中有三个极其重要的应用。</p>
 
-        <p><strong>第一，求解线性最小二乘问题</strong>。当你需要求解 \(\mathbf{A}\mathbf{x} \approx \mathbf{b}\) 且方程数多于未知数时（比如用多个传感器观测来估计机器人的位姿），SVD给出数值最稳定的解 \(\mathbf{x} = \mathbf{V} \mathbf{S}^{+} \mathbf{U}^T \mathbf{b}\)，其中 \(\mathbf{S}^{+}\) 是伪逆。</p>
+        <p><strong>第一，求解线性最小二乘问题</strong>。当你需要求解 <math class="math-inline" aria-label="A x 约等于 b"><mrow><mi>A</mi><mi>x</mi><mo>≈</mo><mi>b</mi></mrow></math> 且方程数多于未知数时（比如用多个传感器观测来估计机器人的位姿），SVD给出数值最稳定的解 <math class="math-inline" aria-label="最小二乘解等于 V 乘 S 伪逆乘 U 转置乘 b"><mrow><mi>x</mi><mo>=</mo><mi>V</mi><msup><mi>S</mi><mo>+</mo></msup><msup><mi>U</mi><mi>T</mi></msup><mi>b</mi></mrow></math>，其中 <math class="math-inline" aria-label="S 的伪逆"><msup><mi>S</mi><mo>+</mo></msup></math> 是伪逆。</p>
 
-        <p><strong>第二，逆向运动学中的奇异值分析</strong>。Jacobian矩阵 \(\mathbf{J} \in \mathbb{R}^{6 \times n}\)（\(n\) 是关节数）的SVD可以告诉我们：在当前位置上，机器人最容易朝哪个方向运动（最大奇异值对应的方向），最不容易朝哪个方向运动（最小奇异值对应的方向）。当最小奇异值接近于零时，说明机器人处于或接近奇异位形。</p>
+        <p><strong>第二，逆向运动学中的奇异值分析</strong>。Jacobian矩阵 <math class="math-inline" aria-label="雅可比 J 是 6 乘 n 实矩阵"><mrow><mi>J</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mn>6</mn><mo>×</mo><mi>n</mi></mrow></msup></mrow></math>（<math class="math-inline" aria-label="关节数 n"><mi>n</mi></math> 是关节数）的SVD可以告诉我们：在当前位置上，机器人最容易朝哪个方向运动（最大奇异值对应的方向），最不容易朝哪个方向运动（最小奇异值对应的方向）。当最小奇异值接近于零时，说明机器人处于或接近奇异位形。</p>
 
-        <p><strong>第三，点云配准中的ICP算法</strong>。在Iterative Closest Point算法中，求解两组点云之间的最优旋转可以用 \(\mathbf{H} = \sum \mathbf{p}_i \mathbf{q}_i^T\) 的SVD来实现：\(\mathbf{R} = \mathbf{V} \mathbf{U}^T\)。这个解法优美、稳定、一阶最优。</p>
+        <p><strong>第三，点云配准中的ICP算法</strong>。在Iterative Closest Point算法中，求解两组点云之间的最优旋转可以用 <math class="math-inline" aria-label="H 等于 p i 乘 q i 转置的求和"><mrow><mi>H</mi><mo>=</mo><mo>∑</mo><msub><mi>p</mi><mi>i</mi></msub><msubsup><mi>q</mi><mi>i</mi><mi>T</mi></msubsup></mrow></math> 的SVD来实现：<math class="math-inline" aria-label="旋转矩阵 R 等于 V 乘 U 转置"><mrow><mi>R</mi><mo>=</mo><mi>V</mi><msup><mi>U</mi><mi>T</mi></msup></mrow></math>。这个解法优美、稳定、一阶最优。</p>
 
         <p>我曾在一个移动机器人项目中遇到过这样的问题：AGV的激光定位在通过狭窄通道时会突然跳变数米。排查了两个月，最终发现是ICP配准中的SVD求解时，当点云近似共面（比如通道两侧的墙壁平行），最小奇异值变得非常小，导致配准解不稳定。解决方案是在SVD中加入阻尼项（类似Levenberg-Marquardt的思路），人为地限定了最小奇异值的下限。这个教训价值两个月的时间和大量熬夜——所以当你听到"SVD很稳定"时，记得加上一句"在非退化条件下"。</p>
 
-        <h3>2.5 线性代数概念与机器人应用对照</h3>
+        <h2>2.5 线性代数概念与机器人应用对照</h2>
 
         <p>我把本章涉及的线性代数概念及其在机器人学中的典型应用整理成了一个对照表，方便你随时查阅：</p>
 
@@ -134,15 +193,15 @@ T_base_to_end = T_base_to_j1 @ T_j1_to_j2 @ T_j2_to_j3 @ T_j3_to_j4 @ T_j4_to_j5
                 <tr>
                     <td>向量叉积</td>
                     <td>力矩与法向计算</td>
-                    <td>力矩 \(\boldsymbol{\tau} = \mathbf{r} \times \mathbf{F}\)、平面法向量估计</td>
+                    <td>力矩 <math class="math-inline" aria-label="力矩 τ 等于力臂 r 叉乘力 F"><mrow><mi>τ</mi><mo>=</mo><mi>r</mi><mo>×</mo><mi>F</mi></mrow></math>、平面法向量估计</td>
                 </tr>
                 <tr>
-                    <td>旋转矩阵 \(\mathbf{R}\)</td>
+                    <td>旋转矩阵 <math class="math-inline" aria-label="旋转矩阵 R"><mi>R</mi></math></td>
                     <td>姿态描述</td>
                     <td>机械臂末端姿态、相机外参标定</td>
                 </tr>
                 <tr>
-                    <td>齐次变换矩阵 \(\mathbf{T}\)</td>
+                    <td>齐次变换矩阵 <math class="math-inline" aria-label="齐次变换 T"><mi>T</mi></math></td>
                     <td>坐标系转换</td>
                     <td>运动链正向传递、手眼标定、SLAM位姿图</td>
                 </tr>
@@ -164,7 +223,7 @@ T_base_to_end = T_base_to_j1 @ T_j1_to_j2 @ T_j2_to_j3 @ T_j3_to_j4 @ T_j4_to_j5
             </tbody>
         </table>
 
-        <h3>2.6 实战：Python/NumPy线性代数</h3>
+        <h2>2.6 实战：Python/NumPy线性代数</h2>
 
         <p>光说不练假把式。我们来看一段用NumPy实现机器人学中常见线性代数运算的代码。建议你在自己的电脑上跟着敲一遍——亲手运行一次比读十遍都管用。</p>
 
@@ -236,12 +295,24 @@ print(f"主方向（最大特征值对应特征向量） = {eigvecs[:, -1]}")</c
 
         <p>好了，线性代数的基础知识就讲到这里。我们从向量讲到了SVD，从理论讲到了NumPy实战。这些内容看起来有些抽象，但请相信——一旦你进入后续章节，你会发现这些概念会在每一个代码层面反复出现。掌握了线性代数，下一步我们需要<strong>微积分和优化工具</strong>来理解机器人的运动与最优控制。下一章见。</p>
 
+        <section id="references">
+            <h2>2.7 延伸阅读与出处</h2>
+            <ul>
+                <li>Gilbert Strang，<a href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/">MIT 18.06 Linear Algebra</a>（向量空间、特征分解与 SVD 的经典公开课）。</li>
+                <li>3Blue1Brown，<a href="https://www.3blue1brown.com/topics/linear-algebra">Essence of Linear Algebra</a>（矩阵作为线性变换的可视化直觉）。</li>
+                <li>Kevin M. Lynch 与 Frank C. Park，<a href="https://hades.mech.northwestern.edu/index.php/Modern_Robotics">Modern Robotics</a>（把本章概念用到刚体运动与雅可比上）。</li>
+                <li>K. S. Arun、T. S. Huang 与 S. D. Blostein，<em>Least-Squares Fitting of Two 3-D Point Sets</em>，IEEE TPAMI 1987，<a href="https://doi.org/10.1109/TPAMI.1987.4767965">doi:10.1109/TPAMI.1987.4767965</a>（用 SVD 求解点集间最优旋转的原始方法）。</li>
+                <li>P. J. Besl 与 N. D. McKay，<em>A Method for Registration of 3-D Shapes</em>，IEEE TPAMI 1992，<a href="https://doi.org/10.1109/34.121791">doi:10.1109/34.121791</a>（ICP 算法的原始论文）。</li>
+            </ul>
+        </section>
+
         <div class="footer-nav">
             <a href="01.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="03.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
