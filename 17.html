@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第17章 MoveIt 2与运动规划</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第17章 MoveIt 2与运动规划</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第17章 MoveIt 2与运动规划</h1>
 
         <p>大家好，我是你们的讲师。上一章我们学会了在仿真中验证机器人算法——这是安全的前提。但仿真中规划出来的路径真的能用吗？机械臂能否在真实环境中避开障碍物，从A点运动到B点？这个问题看起来简单，但在一个包含6个自由度、周围有各种障碍物的空间中，关节空间的可行路径几乎是无穷无尽的——寻找一条无碰撞的路径就像在数亿维度的高维空间中穿针引线。而MoveIt 2，就是目前工业界最成熟的高维运动规划框架。</p>
 
         <p>MoveIt 2是ROS 2生态中用于运动规划（Motion Planning）、碰撞检测（Collision Checking）、运动学求解（Kinematics）和抓取规划（Grasp Planning）的"瑞士军刀"。2026年的MoveIt 2已经进化到支持GPU加速的碰撞检测、OMPL 2.x的高速采样规划器和基于学习的规划器。不管你是做简单的"点到点运动"，还是复杂的"避障抓取"，MoveIt 2都是你绕不开的工具。</p>
 
-        <h3>17.1 MoveIt 2架构</h3>
+        <h2>17.1 MoveIt 2架构</h2>
 
         <p>理解MoveIt 2的架构是有效使用它的前提。MoveIt 2的核心组件围绕一个概念展开：<strong>MoveGroup</strong>——即一组被联合规划的关节和连杆。</p>
 
@@ -65,7 +80,7 @@
             <p><strong>重要规范</strong>：ISO/TS 15066（协作机器人安全标准）要求机器人的碰撞检测响应时间不超过5ms。也就是说，从传感器检测到可能碰撞到触发安全停止的整个链路必须在5ms内完成。这是MoveIt 2碰撞检测性能的关键考核指标——如果你的系统碰撞检测耗时超过5ms，它将无法通过工业安全认证。</p>
         </div>
 
-        <h3>17.2 碰撞检测</h3>
+        <h2>17.2 碰撞检测</h2>
 
         <p>碰撞检测是运动规划的"守门员"——每条候选路径都必须经过碰撞检测的验证才能执行。MoveIt 2的碰撞检测体系分为三个层次。</p>
 
@@ -77,7 +92,7 @@
 
         <p><strong>加速技术</strong>：FCL库使用BVH（Bounding Volume Hierarchy）加速碰撞查询。对于复杂Mesh模型，MoveIt 2支持在加载时生成离散的有符号距离场（Discrete SDF），将碰撞检测从几何相交测试简化为签名距离查询——效率提升10-50倍。此外，使用<code>Allowed Collision Matrix (ACM)</code>标记那些可以安全忽略的碰撞对（比如被气动夹具夹住的工件），可以进一步减少不必要的检测。</p>
 
-        <h3>17.3 OMPL运动规划器</h3>
+        <h2>17.3 OMPL运动规划器</h2>
 
         <p>OMPL（Open Motion Planning Library）是MoveIt 2默认的运动规划引擎。它包含了30多种采样规划算法，涵盖了从最简单的点到点规划到复杂的约束规划。</p>
 
@@ -138,7 +153,44 @@
             <p><strong>规划器选择流程</strong>：第一次使用MoveIt 2时，我建议你从RRT-Connect开始——它够快、够可靠。如果发现规划出的路径太曲折（末端执行器在空间中绕远路），尝试增加<code>goal_bias</code>参数（默认0.05，可以调整到0.1-0.3），让树向目标方向生长得更积极。如果需要最优路径，先用RRT-Connect快速找一条可行路径，然后以此为初始解进行路径平滑（Shortcutting或B-Spline Smoothing），而不是直接上RRT*——后者太慢了。</p>
         </div>
 
-        <h3>17.4 抓取规划</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig17a-title fig17a-desc" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig17a-title">RRT-Connect 在配置空间中双向生长两棵树</title>
+                <desc id="fig17a-desc">在配置空间里，绿色树从起点生长、蓝色树从目标点生长；两棵树遇到障碍物时分别绕行，最终在障碍物下方相遇，连成一条无碰撞路径。</desc>
+                <rect width="640" height="260" rx="18" fill="#f8fbf7"/>
+                <rect x="40" y="30" width="360" height="200" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+                <rect x="180" y="90" width="90" height="60" rx="6" fill="#94a3b8"/>
+                <g stroke="#15803d" stroke-width="2.5">
+                    <line x1="70" y1="200" x2="110" y2="170"/><line x1="70" y1="200" x2="95" y2="130"/>
+                    <line x1="110" y1="170" x2="160" y2="140"/><line x1="95" y1="130" x2="160" y2="140"/>
+                    <line x1="160" y1="140" x2="200" y2="155"/><line x1="200" y1="155" x2="260" y2="178"/>
+                </g>
+                <g stroke="#1d4ed8" stroke-width="2.5">
+                    <line x1="370" y1="60" x2="330" y2="95"/><line x1="370" y1="60" x2="355" y2="120"/>
+                    <line x1="330" y1="95" x2="290" y2="80"/><line x1="355" y1="120" x2="320" y2="160"/>
+                    <line x1="320" y1="160" x2="260" y2="178"/>
+                </g>
+                <g fill="#15803d" stroke="#fff" stroke-width="2">
+                    <circle cx="110" cy="170" r="4"/><circle cx="95" cy="130" r="4"/><circle cx="160" cy="140" r="4"/><circle cx="200" cy="155" r="4"/>
+                </g>
+                <g fill="#1d4ed8" stroke="#fff" stroke-width="2">
+                    <circle cx="330" cy="95" r="4"/><circle cx="355" cy="120" r="4"/><circle cx="290" cy="80" r="4"/><circle cx="320" cy="160" r="4"/>
+                </g>
+                <circle cx="70" cy="200" r="7" fill="#15803d" stroke="#fff" stroke-width="2"/>
+                <circle cx="370" cy="60" r="7" fill="#1d4ed8" stroke="#fff" stroke-width="2"/>
+                <circle cx="260" cy="178" r="7" fill="#b45309" stroke="#fff" stroke-width="2"/>
+                <g font-family="'PingFang SC',system-ui,sans-serif" font-size="12">
+                    <text x="44" y="214" fill="#15803d">起点</text>
+                    <text x="356" y="50" fill="#1d4ed8">目标</text>
+                    <text x="225" y="125" fill="#fff" text-anchor="middle">障碍物</text>
+                    <text x="268" y="200" fill="#b45309">两树相遇</text>
+                    <text x="60" y="24" font-size="13" fill="#475569">C-Space（配置空间）</text>
+                </g>
+            </svg>
+            <figcaption>RRT-Connect 的双向随机树。绿色树从起点、蓝色树从目标点同时生长，新节点必须通过碰撞检测（不能落入障碍物）；两棵树相遇即得到一条无碰撞路径。它快、但不保证最优，因此往往配合后处理（如 B 样条平滑）使用。对比 17.3 节的 RRT*，后者通过“重连”逐步逼近最短路径，但需要更多采样。此为教学示意。</figcaption>
+        </figure>
+
+        <h2>17.4 抓取规划</h2>
 
         <p>抓取是机械臂最常见的任务之一。MoveIt 2提供了完整的抓取规划工具链，从抓取点生成到抓取质量评估。</p>
 
@@ -150,7 +202,7 @@
 
         <p><strong>夹爪的选择</strong>：2026年工业界最主流的夹爪类型是真空吸盘（适合光滑平面和轻载，如玻璃面板、纸箱）和二指平行夹爪（适合通用抓取，如螺丝刀、工件）。对于复杂物体，三指自适应夹爪（如Robotiq 3-Finger）和多指灵巧手（如Shadow Hand）也在快速普及。在MoveIt 2中，夹爪URDF模型需要包含完整的<code>&lt;joint type="prismatic"&gt;</code>定义，夹爪的开启/闭合通过关节位置控制。</p>
 
-        <h3>17.5 实战：MoveIt 2配置与使用</h3>
+        <h2>17.5 实战：MoveIt 2配置与使用</h2>
 
         <p>让我们通过一个完整的Python例子来体验MoveIt 2的使用流程。假设我们已经通过MoveIt Setup Assistant配置了一个六轴机器人，生成了<code>config/</code>目录下的所有配置项。</p>
 
@@ -244,12 +296,20 @@ int main(int argc, char** argv)
 
         <p>本章我们全面学习了MoveIt 2的运动规划体系——从核心架构（MoveGroupInterface、PlanningScene、运动学插件、碰撞检测管道）、到碰撞检测的三个层次（自碰撞、环境碰撞、人体碰撞）、到OMPL规划器的选择与对比（RRT-Connect、RRT*、PRM*），再到抓取规划（抓取生成、质量评估、Pre/Post-Grasp），最后通过Python和C++的实际代码示范了MoveIt 2的使用流程。MoveIt帮你规划路径——但如果机器人模型不准，所有规划都是纸上谈兵。下一章我们要解决的问题正是这个工程中的"地基"问题——<strong>机器人标定与参数辨识</strong>。</p>
 
+        <h2>17.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Şucan, I. A., Moll, M., & Kavraki, L. E. (2012). The Open Motion Planning Library. <em>IEEE Robotics & Automation Magazine</em>, 19(4)。本章 17.3 节 OMPL 与采样规划器的原始文献。 <a href="https://doi.org/10.1109/MRA.2012.2205651">doi:10.1109/MRA.2012.2205651</a></li>
+            <li>Coleman, D., Şucan, I., Chitta, S., & Correll, N. (2014). Reducing the Barrier to Entry of Complex Robotic Software: a MoveIt! Case Study. <em>Journal of Software Engineering for Robotics</em>。本章 17.1–17.2 节 MoveIt 架构与碰撞检测管道的参考。 <a href="https://arxiv.org/abs/1404.3785">arXiv:1404.3785</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="16.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="18.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
