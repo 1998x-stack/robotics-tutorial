@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第18章 机器人标定与参数辨识</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第18章 机器人标定与参数辨识</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第18章 机器人标定与参数辨识</h1>
 
         <p>大家好，我是你们的讲师。在上一章我们用了MoveIt 2规划出了完美的运动路径——至少仿真中看起来是完美的。但如果你把同样的代码部署到真机上，你会发现一件令人沮丧的事：末端执行器到达的位置与规划位置总是有几毫米甚至几厘米的偏差。是运动学算错了吗？不是。是控制算法有问题吗？也不是。问题出在哪里？出在"模型与现实之间的差异"——你告诉MoveIt 2机器人的连杆长度是0.3米，但实际制造的连杆可能是0.302米；你告诉控制器关节的零点位置是某个角度，但实际装配时零点偏移了0.1度。这就是机器人标定要解决的根本问题。</p>
 
         <p>标定（Calibration）和参数辨识（Parameter Identification）是机器人从"仿真玩具"走向"精密生产工具"的最后一道门槛。一台未经标定的工业机器人重复定位精度可能在±0.5mm左右，但经过完整的运动学标定后可以提升到±0.02mm——这25倍的精度的提升，对于芯片封装、航空部件装配等场景来说就是合格与不合格的区别。本章我们从运动学标定、动力学参数辨识、手眼标定、相机与IMU标定这几个方面展开，最后分享我在实战中踩过的几个坑。</p>
 
-        <h3>18.1 运动学标定</h3>
+        <h2>18.1 运动学标定</h2>
 
         <p>运动学标定的目的是精确测量机器人的实际运动学参数（DH参数或旋量参数），从而缩小名义模型与实际物理模型之间的差异。</p>
 
@@ -63,7 +78,7 @@
             <p><strong>关键数据</strong>：一台KUKA KR 160机器人的经验表明，未经标定时的重复定位精度为±0.3mm，绝对定位精度为±2.5mm。经过激光跟踪仪标定后，重复定位精度提升到±0.06mm，绝对定位精度提升到±0.15mm。也就是说，标定改善的主要是绝对定位精度——机器人的"肌肉记忆"（重复精度）是机械设计决定的，但"对世界的理解"（绝对精度）是标定赋予的。</p>
         </div>
 
-        <h3>18.2 动力学参数辨识</h3>
+        <h2>18.2 动力学参数辨识</h2>
 
         <p>如果你的机器人需要做高速运动、力控或者拖拽示教——仅仅标定运动学是不够的，你还需要精确的动力学模型。动力学参数辨识就是确定每个连杆的质量、质心位置、惯性张量和关节摩擦系数。</p>
 
@@ -109,7 +124,7 @@ def identify_dynamics(Y_regressor, torque_measurements):
 
         <p>辨识完成后，一定要用验证轨迹（独立于激励轨迹的数据）来验证辨识结果。常用的验证方法是：用RNEA（Recursive Newton-Euler Algorithm，递归牛顿-欧拉算法）计算力矩并与实测力矩比较。如果验证轨迹上的预测力矩与实测力矩的RMS误差小于0.1Nm（对于中型工业机器人），说明辨识成功。</p>
 
-        <h3>18.3 手眼标定</h3>
+        <h2>18.3 手眼标定</h2>
 
         <p>手眼标定（Hand-Eye Calibration）解决的是"相机坐标系与机器人坐标系之间的变换关系"。相机装在机械臂末端（Eye-in-Hand，眼在手上）或者固定在工作空间上方（Eye-to-Hand，眼在手外），两种配置的标定方法不同。</p>
 
@@ -153,7 +168,35 @@ for i in range(len(T_base_to_end)):
             <p><strong>实操建议</strong>：做手眼标定时最容易犯的错误是"运动范围太小"——如果你只让机器人末端在一个小范围内平移和旋转，A和B的变换矩阵高度相关，AX=XB的解会很差。正确的做法是：让末端在相机视野的各个角落做不同方向的旋转（绕X/Y/Z轴至少旋转±30°），覆盖整个工作空间的80%以上。标定后务必用"未见过的姿态"验证重投影误差——如果误差大于2mm，说明标定质量不达标。</p>
         </div>
 
-        <h3>18.4 相机与IMU标定</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig18a-title fig18a-desc" viewBox="0 0 640 270" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig18a-title">眼在手上（Eye-in-Hand）的手眼标定</title>
+                <desc id="fig18a-desc">相机固定在机械臂末端，随手臂运动；相机观测固定在桌面上的标定板。需要求出基座、末端、相机与标定板四个坐标系之间的变换，其中手眼变换 X 是待求量。</desc>
+                <rect width="640" height="270" rx="18" fill="#f8fbf7"/>
+                <rect x="420" y="150" width="130" height="84" rx="6" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+                <g stroke="#cbd5e1" stroke-width="1.5">
+                    <line x1="452" y1="150" x2="452" y2="234"/><line x1="484" y1="150" x2="484" y2="234"/><line x1="516" y1="150" x2="516" y2="234"/>
+                    <line x1="420" y1="178" x2="550" y2="178"/><line x1="420" y1="206" x2="550" y2="206"/>
+                </g>
+                <line x1="80" y1="215" x2="150" y2="152" stroke="#0e7490" stroke-width="11" stroke-linecap="round"/>
+                <line x1="150" y1="152" x2="230" y2="122" stroke="#0e7490" stroke-width="11" stroke-linecap="round"/>
+                <circle cx="80" cy="215" r="10" fill="#334155" stroke="#fff" stroke-width="3"/>
+                <circle cx="150" cy="152" r="8" fill="#ea580c" stroke="#fff" stroke-width="3"/>
+                <rect x="226" y="104" width="40" height="30" rx="5" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/>
+                <g stroke="#1d4ed8" stroke-width="1.5" stroke-dasharray="5 5"><line x1="266" y1="116" x2="420" y2="158"/><line x1="266" y1="124" x2="420" y2="222"/></g>
+                <g font-family="'PingFang SC',system-ui,sans-serif" font-size="12">
+                    <text x="56" y="242" fill="#334155">{B} 基座</text>
+                    <text x="186" y="112" fill="#c2410c">{E} 末端</text>
+                    <text x="268" y="100" fill="#1d4ed8">{C} 相机</text>
+                    <text x="470" y="252" fill="#475569" text-anchor="middle">标定板 {T}</text>
+                    <text x="320" y="40" font-size="16" fill="#0f172a" text-anchor="middle">A · X = X · B</text>
+                    <text x="320" y="60" font-size="12" fill="#475569" text-anchor="middle">A：末端两次运动的变换（FK）；B：标定板两次运动的变换（视觉）；X：手眼变换</text>
+                </g>
+            </svg>
+            <figcaption>眼在手上（Eye-in-Hand）标定。相机固定在末端，机器人带着相机做多次非共面运动，同时对固定的标定板拍照。由此得到成对的 A（末端相对运动，来自正运动学）与 B（标定板相对运动，来自视觉），解 <math class="math-inline" aria-label="A 乘 X 等于 X 乘 B"><mi>A</mi><mo>·</mo><mi>X</mi><mo>=</mo><mi>X</mi><mo>·</mo><mi>B</mi></math> 即得手眼变换 <math class="math-inline" aria-label="手眼变换 X"><mi>X</mi></math>（Tsai-Lenz 等两步法）。眼在手外的配置把相机换成固定在外部、标定板装在末端。此图为教学示意。</figcaption>
+        </figure>
+
+        <h2>18.4 相机与IMU标定</h2>
 
         <p>除了机器人的本体标定和外参标定，传感器的自身标定也同样重要。</p>
 
@@ -217,7 +260,7 @@ for i in range(len(T_base_to_end)):
             </tr>
         </table>
 
-        <h3>18.5 实战踩坑经验</h3>
+        <h2>18.5 实战踩坑经验</h2>
 
         <p>标定是一个"看起来简单、做起来全是坑"的事情。在多年的机器人部署中，我踩过不少坑，挑三个最有代表性的分享给你。</p>
 
@@ -239,12 +282,20 @@ for i in range(len(T_base_to_end)):
 
         <p>本章我们系统学习了机器人标定与参数辨识的完整体系——运动学标定（DH参数误差辨识，使用激光跟踪仪或闭环约束）、动力学参数辨识（激励轨迹设计、最小二乘辨识、RNEA验证）、手眼标定（AX=XB问题、Tsai-Lenz方法、OpenCV实现）、相机与IMU标定（张正友标定、Kalibr工具箱），以及在实战中多次让我"被抓"的踩坑经验。传感器标定好了，眼睛睁开了——从下一章开始，我们让机器人真正"看懂"周围的世界，并建立起对环境的理解。这就是<strong>SLAM原理与实践</strong>。</p>
 
+        <h2>18.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Tsai, R. Y., & Lenz, R. K. (1989). A New Technique for Fully Autonomous and Efficient 3D Robotics Hand/Eye Calibration. <em>IEEE Transactions on Robotics and Automation</em>, 5(3)。本章 18.3 节 AX=XB 与 Tsai-Lenz 两步法的原始文献。 <a href="https://doi.org/10.1109/70.34770">doi:10.1109/70.34770</a></li>
+            <li>Park, F. C., & Martin, B. J. (1994). Robot Sensor Calibration: Solving AX = XB on the Euclidean Group. <em>IEEE Transactions on Robotics and Automation</em>, 10(5)。手眼标定的另一经典解法（OpenCV calibrateHandEye 的可选方法之一）。 <a href="https://doi.org/10.1109/70.326576">doi:10.1109/70.326576</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="17.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="19.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
