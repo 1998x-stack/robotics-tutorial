@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第14章 先进控制方法</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第14章 先进控制方法</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第14章 先进控制方法</h1>
 
         <p>大家好，我是你们的讲师。上一章我们学习了PID控制——它简单、可靠、被广泛应用。但PID有一个根本假设：<strong>每个关节是独立的</strong>。然而，真实的机器人是多输入多输出（MIMO）的强耦合系统——一个关节的运动会影响其他关节的重力矩、科氏力和惯性耦合。当机器人的速度增加、负载变化或需要与环境交互时，PID的局限性就暴露出来了。</p>
 
         <p>这就是先进控制方法登场的地方。从计算力矩控制到阻抗控制，从模型预测控制到全身控制——这些方法利用我们前几章建立的运动学和动力学模型，让机器人能够在更复杂的场景中表现出更强的能力和更高的安全性。如果说PID是"骑自行车"，本章的方法就是"开赛车"——更快、更精确、但需要更多的模型知识和计算资源。</p>
 
-        <h3>14.1 计算力矩控制</h3>
+        <h2>14.1 计算力矩控制</h2>
 
         <p>计算力矩控制（Computed Torque Control, CTC）是机器人控制中最经典的"模型-based"方法。其核心思想极为优雅：<strong>用动力学模型精确抵消系统的非线性，将复杂的机器人系统"变成"一个解耦的线性系统</strong>。</p>
 
@@ -101,7 +116,7 @@ for t in range(1000):
 
         <p>计算力矩控制的主要局限在于对模型精度的高度依赖。如果质量矩阵M(q)误差超过10%，闭环系统可能失稳。因此，CTC通常与自适应或鲁棒控制结合使用。</p>
 
-        <h3>14.2 阻抗与导纳控制</h3>
+        <h2>14.2 阻抗与导纳控制</h2>
 
         <p>传统的PID和CTC追求的是"精确跟踪"——误差必须为零。但在很多实际场景中，这恰恰是危险的：如果机器人末端在跟踪轨迹时撞到了人或者障碍物，刚性跟踪会输出巨大的力矩试图"硬压过去"，造成伤害或损坏。</p>
 
@@ -120,7 +135,36 @@ for t in range(1000):
             <p><strong>选择原则</strong>：如果你的机器人有力矩/电流控制模式（大多数协作机器人支持），优先使用阻抗控制——响应更快、不需要力传感器。如果你的机器人只有位置控制模式（很多工业机器人），使用导纳控制——通过六维力传感器测量外力，然后修正位置指令。记住一个经验：<strong>阻抗适合"低刚度"场景（人机交互），导纳适合"高刚度"场景（精密装配）</strong>。</p>
         </div>
 
-        <h3>14.3 模型预测控制（MPC）</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig14a-title fig14a-desc" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig14a-title">阻抗控制的虚拟弹簧-阻尼模型</title>
+                <desc id="fig14a-desc">期望位置 x_d 与实际末端位置 x 之间用一个虚拟弹簧和一个虚拟阻尼并联连接；位移越大，弹簧力越大，相对速度越大，阻尼力越大。</desc>
+                <rect width="640" height="240" rx="18" fill="#f8fbf7"/>
+                <line x1="180" y1="45" x2="180" y2="200" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="7 6"/>
+                <line x1="430" y1="45" x2="430" y2="200" stroke="#c2410c" stroke-width="2" stroke-dasharray="7 6"/>
+                <path d="M195 100 l18 0 l14 -14 l28 28 l28 -28 l28 28 l28 -28 l14 14 l18 0" fill="none" stroke="#0e7490" stroke-width="3"/>
+                <line x1="195" y1="150" x2="270" y2="150" stroke="#0e7490" stroke-width="3"/>
+                <rect x="270" y="138" width="62" height="24" rx="4" fill="#d6f1eb" stroke="#0e7490" stroke-width="3"/>
+                <line x1="332" y1="150" x2="415" y2="150" stroke="#0e7490" stroke-width="3"/>
+                <rect x="410" y="95" width="70" height="64" rx="10" fill="#ffe3c2" stroke="#c2410c" stroke-width="3"/>
+                <g font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="430" y="132" font-size="14" fill="#0f172a" text-anchor="middle">机器人</text>
+                    <text x="430" y="150" font-size="12" fill="#c2410c" text-anchor="middle">末端</text>
+                    <text x="180" y="222" font-size="13" fill="#1d4ed8" text-anchor="middle">期望位置 x_d</text>
+                    <text x="430" y="222" font-size="13" fill="#c2410c" text-anchor="middle">实际位置 x</text>
+                    <text x="300" y="82" font-size="12" fill="#0e7490" text-anchor="middle">虚拟刚度 K_imp</text>
+                    <text x="300" y="182" font-size="12" fill="#0e7490" text-anchor="middle">虚拟阻尼 D_imp</text>
+                </g>
+                <defs>
+                    <marker id="fig14a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker>
+                </defs>
+                <line x1="600" y1="127" x2="490" y2="127" stroke="#b91c1c" stroke-width="3" marker-end="url(#fig14a-arrow)"/>
+                <text x="545" y="118" font-size="13" fill="#b91c1c" text-anchor="middle" font-family="'PingFang SC',system-ui,sans-serif">F_ext</text>
+            </svg>
+            <figcaption>阻抗控制以“期望位置—实际位置”之间的虚拟弹簧-阻尼来定义交互行为：末端偏离 <math class="math-inline" aria-label="期望位置 x d"><msub><mi>x</mi><mi>d</mi></msub></math> 越远，恢复力越大；相对速度越大，阻尼力越大。调大 <math class="math-inline" aria-label="刚度 K"><mi>K</mi></math> 就“硬”，适合精密装配；调小刚度就“软”，适合人机协作。导纳控制是对偶的方式：先测外力 F_ext，再反推应修正的位置。</figcaption>
+        </figure>
+
+        <h2>14.3 模型预测控制（MPC）</h2>
 
         <p>模型预测控制（Model Predictive Control, MPC）是当前机器人控制领域最前沿的实用技术之一。它的核心思想是：在每个控制周期，<strong>用动力学模型"预测"未来一段时间内的系统行为，求解一个有限时域优化问题，只执行第一个控制量，然后在下一个周期重复</strong>——这被称为"滚动时域优化"（Receding Horizon Control）。</p>
 
@@ -141,7 +185,7 @@ for t in range(1000):
             <p><strong>工程现实</strong>：MPC的主要瓶颈是计算量。一个完整的机器人MPC（6轴机械臂，预测时域50步，考虑非线性动力学）需要在<strong>1-2毫秒</strong>内完成求解。这通常需要专用求解器（如ACADOS、HPIPM、OSQP）和代码生成技术。对于大多数项目团队，建议先在仿真中验证MPC，确认稳定性和实时性之后再移植到真机。2026年，随着GPU加速的普及（Isaac GR00T上的CUDA MPC求解器），MPC正走向"开箱即用"阶段。</p>
         </div>
 
-        <h3>14.4 全身控制（WBC）</h3>
+        <h2>14.4 全身控制（WBC）</h2>
 
         <p>全身控制（Whole-Body Control, WBC）解决的是人形/四足机器人特有的问题：<strong>多个任务同时竞争有限的控制自由度</strong>。例如，双足机器人需要同时保持平衡、跟踪手臂末端位置、保持躯干水平——任务数量超过了关节数量，必须排定优先级。</p>
 
@@ -212,7 +256,7 @@ q̈₂ = q̈₁ + N₁ · q̈₂₀
             </tr>
         </table>
 
-        <h3>14.5 2026控制前沿</h3>
+        <h2>14.5 2026控制前沿</h2>
 
         <p>在2026年，机器人控制领域出现了几个值得关注的新方向：</p>
 
@@ -230,12 +274,20 @@ q̈₂ = q̈₁ + N₁ · q̈₂₀
 
         <p>理论讲完了——现在让我们进入工程实战。从下一章开始，我们将学习如何使用实际工具构建和部署机器人系统。下一章：<strong>ROS 2核心编程</strong>——机器人领域的"操作系统"标准。</p>
 
+        <h2>14.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Hogan, N. (1985). Impedance Control: An Approach to Manipulation. <em>ASME Journal of Dynamic Systems, Measurement, and Control</em>, 107(1)。本章 14.2 节阻抗控制的原始文献。 <a href="https://doi.org/10.1115/1.3140702">doi:10.1115/1.3140702</a></li>
+            <li>Siciliano, B., et al. (2010). <em>Robotics: Modelling, Planning and Control</em>. Springer。计算力矩控制与反馈线性化（14.1 节）、以及全身控制的零空间投影（14.4 节）的教科书推导。 <a href="https://doi.org/10.1007/978-1-84628-642-1">doi:10.1007/978-1-84628-642-1</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="13.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="15.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
