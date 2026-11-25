@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第16章 机器人仿真</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第16章 机器人仿真</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第16章 机器人仿真</h1>
 
         <p>大家好，我是你们的讲师。在上一章我们学会了用ROS 2搭建机器人的软件骨架——节点通信、坐标变换、Launch编排。但有一个灵魂拷问：你的代码真的能驱动真实的机器人吗？你在Jupyter Notebook里计算出来的轨迹，装到真机上会不会直接把关节撞到硬限位？答案是你绝对不想在生产线上才知道答案。这就是仿真存在的意义。</p>
 
         <p>2026年，机器人仿真已经不再是"锦上添花"的工具，而是整个研发流程的第一环。从宇树H2的行走策略在Isaac Sim中训练了相当于200年的虚拟时间后直接部署到真机，到Figure 02的抓取策略在仿真中完成了超过100万次尝试——Sim-to-Real已经成为行业标准。这一章，我将带你了解仿真引擎的选择、URDF/SDF建模、域随机化技术，并通过一个完整的MuJoCo + Python实战让你亲手写出第一个机器人仿真程序。</p>
 
-        <h3>16.1 为什么仿真先行</h3>
+        <h2>16.1 为什么仿真先行</h2>
 
         <p>让我用一个真实的故事来说明仿真有多重要。2021年，我参与了一个工业协作机器人的项目——目标是让机器人在产线上完成"取螺丝刀→插入螺丝孔"的动作。我们在真机上写了三周的代码，期间烧坏了两台驱动器（因为逆运动学在奇异点附近发了无穷大的速度指令），撞断了一把末端工具（因为默认的碰撞检测没有打开），还有一次差点打到旁边的工程师。如果没有仿真，这些事故中的任何一次都可能导致人员受伤或设备报废。</p>
 
@@ -57,7 +72,7 @@
 
         <p>2026年的Sim-to-Real范式已经进化到"Zero-Shot Transfer"——在仿真中训练好的策略直接部署到真机上，不需要任何微调。核心技术是域随机化（Domain Randomization），我们会在16.4节详细展开。</p>
 
-        <h3>16.2 三大仿真引擎对比</h3>
+        <h2>16.2 三大仿真引擎对比</h2>
 
         <p>目前业界主流的机器人仿真引擎有五款，但真正在2026年占据统治地位的是MuJoCo、Isaac Sim和Gazebo。它们各自有明确的定位和适用场景。</p>
 
@@ -128,7 +143,7 @@
             <p><strong>选型建议</strong>：做强化学习训练选MuJoCo（快而稳）；做人形机器人和视觉策略选Isaac Sim（渲染真实）；做系统集成测试选Gazebo（ROS 2原生支持）。我在实际项目中往往是三者兼用——MuJoCo训练策略，Isaac Sim验证视觉，Gazebo做最终的系统级测试。</p>
         </div>
 
-        <h3>16.3 URDF与SDF建模</h3>
+        <h2>16.3 URDF与SDF建模</h2>
 
         <p>在第8章我们已经接触过URDF（Unified Robot Description Format），它是ROS生态中描述机器人运动学和动力学模型的标准XML格式。在仿真中，URDF/SDF模型的质量直接决定了仿真结果的可靠性。</p>
 
@@ -178,7 +193,7 @@
   &lt;/model&gt;
 &lt;/sdf&gt;</code></pre>
 
-        <h3>16.4 域随机化</h3>
+        <h2>16.4 域随机化</h2>
 
         <p>Sim-to-Real的核心挑战是什么？是"仿真与现实之间的鸿沟"（Reality Gap）。在仿真中训练的策略直接部署到真机上，往往表现很差——因为仿真中的物理参数是精确的、光照是完美的、传感器是没有噪声的。域随机化（Domain Randomization, DR）是目前最有效的弥合手段。</p>
 
@@ -196,7 +211,35 @@
             <p><strong>效果数据</strong>：根据2025年的一项系统综述，应用域随机化后策略从仿真迁移到真机的成功率从平均27%提升到了68%。在最优配置下（全维度随机化 + 自适应DR调度），甚至实现了92%的零样本迁移成功率。但有一个关键点——过度随机化会损害训练效果。例如，如果把关节摩擦随机化到0-10Nm的范围，策略将学到"不管怎么用力关节都不动"，在真机上反而表现很差。好的DR设计是一门"合理设置随机化范围"的艺术。</p>
         </div>
 
-        <h3>16.5 实战：MuJoCo + Python仿真</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig16a-title fig16a-desc" viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig16a-title">Sim-to-Real 的闭环流程</title>
+                <desc id="fig16a-desc">流程从仿真环境开始，在仿真中训练策略，再用域随机化拓宽参数分布覆盖真实差异，最后部署到真机；真机运行中发现的新情况又反过来补充仿真与随机化范围，形成闭环。</desc>
+                <rect width="640" height="300" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig16a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <g stroke="#334155" stroke-width="3" fill="none" marker-end="url(#fig16a-arrow)">
+                    <path d="M388 74 L432 120"/><path d="M455 176 L405 220"/>
+                    <path d="M252 246 L205 178"/><path d="M152 124 L250 80"/>
+                </g>
+                <g stroke-width="3" rx="12">
+                    <rect x="255" y="31" width="130" height="48" rx="12" fill="#dbeafe" stroke="#1d4ed8"/>
+                    <rect x="405" y="126" width="130" height="48" rx="12" fill="#d6f1eb" stroke="#0e7490"/>
+                    <rect x="255" y="221" width="130" height="48" rx="12" fill="#ffe3c2" stroke="#c2410c"/>
+                    <rect x="105" y="126" width="130" height="48" rx="12" fill="#dcfce7" stroke="#15803d"/>
+                </g>
+                <g font-family="'PingFang SC',system-ui,sans-serif" font-size="14" fill="#0f172a" text-anchor="middle">
+                    <text x="320" y="61">仿真环境</text>
+                    <text x="470" y="156">策略训练</text>
+                    <text x="320" y="251">真机部署</text>
+                    <text x="170" y="156">域随机化</text>
+                </g>
+            </svg>
+            <figcaption>Sim-to-Real 闭环。在仿真中训练策略后，用域随机化把质量、摩擦、延迟、传感器噪声等参数在合理范围内随机化，使策略见到足够多样的“虚拟现实”；再部署到真机。真机上暴露出的新工况又反过来补充仿真模型与随机化范围——这就是 16.4 节“零样本迁移”背后的工程循环。此图为教学示意。</figcaption>
+        </figure>
+
+        <h2>16.5 实战：MuJoCo + Python仿真</h2>
 
         <p>让我们动手做一个实际的仿真——在MuJoCo中创建一个简单的二轴机械臂，用Python控制它从一个位置运动到另一个位置。MuJoCo的Python API（<code>mujoco</code>和<code>dm_control</code>）非常简洁，三十行代码就能跑起来一个仿真。</p>
 
@@ -262,12 +305,21 @@ print(f"末端执行器位置: {data.geom_xpos[-1]}")</code></pre>
 
         <p>本章我们深入探讨了机器人仿真的方方面面——为什么仿真先行（安全、成本、并行、可重复）、主流仿真引擎的选型对比、URDF/SDF建模（特别是传感器插件）、域随机化这一Sim-to-Real核心技术，以及一个完整的MuJoCo + Python仿真实战。仿真让你在虚拟世界中安全地测试和训练，但运动规划最终需要交给专业框架。下一章我们就来学习工业界公认的运动规划标准框架——<strong>MoveIt 2与运动规划</strong>。</p>
 
+        <h2>16.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Todorov, E., Erez, T., & Tassa, Y. (2012). MuJoCo: A physics engine for model-based control. <em>IEEE/RSJ IROS</em>。本章 16.2 节 MuJoCo 的原始文献。 <a href="https://doi.org/10.1109/IROS.2012.6386109">doi:10.1109/IROS.2012.6386109</a></li>
+            <li>Tobin, J., Fong, R., Ray, A., Schneider, J., Zaremba, W., & Abbeel, P. (2017). Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World. <em>IEEE/RSJ IROS</em>。本章 16.4 节域随机化的原始文献。 <a href="https://arxiv.org/abs/1703.06907">arXiv:1703.06907</a></li>
+            <li>Makoviychuk, V., et al. (2021). Isaac Gym: High Performance GPU-Based Physics Simulation for Robot Learning。本章 16.2 节 Isaac Sim/Isaac Gym 的公开技术报告。 <a href="https://arxiv.org/abs/2108.10470">arXiv:2108.10470</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="15.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="17.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
