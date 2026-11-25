@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第23章 机器人调试与诊断</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第23章 机器人调试与诊断</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第23章 机器人调试与诊断</h1>
 
         <p>大家好，我是你们的讲师。如果你做机器人开发超过三个月，一定会经历这样的场景：一切看起来都对——代码编译通过、仿真里运行完美、传感器数据有输出——但机器人到了真机上就是不动，或者动起来像抽风一样。这时候你坐在电脑前，盯着终端输出，脑子里只有一个念头："到底哪里出了问题？"</p>
 
         <p>调试（Debugging）是机器人开发中被低估最多的技能。写代码的能力决定了你能跑多快，但调试的能力决定了你能走多远。我见过太多团队花两周写好运动学代码，却花了一个月来排查"为什么最后一个关节偶尔会反方向转"这样的诡异问题。这一章，我们来系统性地学习机器人调试的方法论和工具链，让你不再"靠感觉"猜问题。</p>
 
-        <h3>调试心态与方法论</h3>
+        <h2>调试心态与方法论</h2>
 
         <p>首先我要和你分享一个观念：<strong>调试不是撞大运，而是一门科学</strong>。最有效的调试方法是遵循经典的"假设-验证-确认"循环（Scientific Debugging），这和科学研究的方法论如出一辙。</p>
 
@@ -111,7 +126,39 @@
             </tr>
         </table>
 
-        <h3>ROS 2诊断工具链</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig23a-title fig23a-desc" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig23a-title">机器人调试的五个阶段</title>
+                <desc id="fig23a-desc">从观察现象开始，依次经历采集数据、构造最小复现、二分定位，最后修复并验证，形成一个可迭代的排查流程。</desc>
+                <rect width="640" height="220" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig23a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <g stroke="#334155" stroke-width="3" fill="none" marker-end="url(#fig23a-arrow)">
+                    <line x1="132" y1="115" x2="158" y2="115"/><line x1="252" y1="115" x2="278" y2="115"/>
+                    <line x1="372" y1="115" x2="398" y2="115"/><line x1="492" y1="115" x2="518" y2="115"/>
+                </g>
+                <g stroke-width="3">
+                    <rect x="30" y="85" width="102" height="60" rx="12" fill="#dbeafe" stroke="#1d4ed8"/>
+                    <rect x="160" y="85" width="92" height="60" rx="12" fill="#d6f1eb" stroke="#0e7490"/>
+                    <rect x="280" y="85" width="92" height="60" rx="12" fill="#dcfce7" stroke="#15803d"/>
+                    <rect x="400" y="85" width="92" height="60" rx="12" fill="#ffe3c2" stroke="#c2410c"/>
+                    <rect x="520" y="85" width="92" height="60" rx="12" fill="#f3e8ff" stroke="#7e22ce"/>
+                </g>
+                <g font-family="'PingFang SC',system-ui,sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">
+                    <text x="81" y="120">观察现象</text><text x="206" y="120">采集数据</text><text x="326" y="120">最小复现</text>
+                    <text x="446" y="120">二分定位</text><text x="566" y="120">修复验证</text>
+                </g>
+                <g font-family="'PingFang SC',system-ui,sans-serif" font-size="11" fill="#475569" text-anchor="middle">
+                    <text x="81" y="176">稳定复现再动手</text>
+                    <text x="326" y="176">缩小变量范围</text>
+                    <text x="566" y="176">回归防复发</text>
+                </g>
+            </svg>
+            <figcaption>调试的五阶段流程。先稳定地观察现象、用 ros2 bag 与日志采集数据，再构造最小复现（把问题从大系统中剥离出来），用二分法缩小到具体模块，最后修复并用回归测试验证。这个顺序比“直接改代码碰运气”可靠得多。此图为教学示意。</figcaption>
+        </figure>
+
+        <h2>ROS 2诊断工具链</h2>
 
         <p>有了方法论做指导，现在我们来武装具体的工具。ROS 2生态系统提供了一整套诊断工具，它们是你调试时的"听诊器"和"CT机"。</p>
 
@@ -148,7 +195,7 @@ ros2 service type /compute_ik</code></pre>
             <p><strong>实用技巧</strong>：用<code>ros2 topic echo</code>命令时加上<code>--once</code>参数可以只输出一条消息就退出，这在写调试脚本时需要抓取单个消息快照时非常方便。另外，<code>ros2 topic hz</code>的输出包含min/max/avg延迟统计，是检查控制循环是否稳定的第一道防线。</p>
         </div>
 
-        <h3>数据记录与回放</h3>
+        <h2>数据记录与回放</h2>
 
         <p>真机调试的最大痛点是：机器人在运行时你无法停下来仔细分析。ROS 2 bag是解决这个问题的终极答案——它可以将所有topic数据录制到磁盘，然后在仿真中或事后回放，等于给了你一个"时间机器"。</p>
 
@@ -177,7 +224,7 @@ ros2 bag play debug_session_23.mcap --rate 0.5</code></pre>
 
         <p>对于时间序列数据的深入分析，我强烈推荐<strong>PlotJuggler</strong>。这是一个专为ROS 2 bag设计的时间序列可视化工具，支持多轴图、数据滤波、数学变换、甚至自定义公式。比如你可以把joint_states中的位置数据拖到纵轴，对时间求导得到速度曲线，再叠加控制指令的力矩曲线，一眼就能看出是"指令没跟上"还是"执行有滞后"。</p>
 
-        <h3>常见Bug排查清单</h3>
+        <h2>常见Bug排查清单</h2>
 
         <p>下面我整理了一些你在机器人调试中几乎必然会遇到的经典问题，每一个背后都有真实的故事。</p>
 
@@ -242,7 +289,7 @@ ros2 bag play debug_session_23.mcap --rate 0.5</code></pre>
             </tr>
         </table>
 
-        <h3>实战：真机调试案例</h3>
+        <h2>实战：真机调试案例</h2>
 
         <p>理论说够了，我们来走一个真实的调试案例——确保你看了之后能举一反三。</p>
 
@@ -283,12 +330,20 @@ ros2 bag play debug_session_23.mcap --rate 0.5</code></pre>
 
         <p>软件可以调通了，控制回路也稳定了——但你可能忽略了一个关键问题：你的机器人跑在什么操作系统和硬件平台上？URDF里写的那些惯量参数在Linux桌面环境和实时嵌入式环境下的表现是完全不同的。下一章我们就来深入探讨<strong>嵌入式与实时系统</strong>——从MCU的选择到FreeRTOS的任务调度，从micro-ROS到工业以太网总线，让你的机器人不仅在"软件上对"，还要在"硬件上稳"。</p>
 
+        <h2>延伸阅读与出处</h2>
+
+        <ul>
+            <li>Macenski, S., et al. (2022). Robot Operating System 2: Design, architecture, and uses in the wild. <em>Science Robotics</em>, 7(66), eabm6074。本章 ROS 2 工具链与调试流程的架构背景。 <a href="https://doi.org/10.1126/scirobotics.abm6074">doi:10.1126/scirobotics.abm6074</a></li>
+            <li>ROS 2 官方命令行工具与 rosbag2 文档（数据记录与回放、诊断工具）。 <a href="https://docs.ros.org/">docs.ros.org</a>。本章中的具体工具命令属于教学示例。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="22.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="24.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
