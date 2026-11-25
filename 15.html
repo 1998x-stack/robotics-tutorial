@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第15章 ROS 2核心编程</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第15章 ROS 2核心编程</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第15章 ROS 2核心编程</h1>
 
         <p>大家好，我是你们的讲师。从第5章到第14章，我们一起走过了机器人学最硬核的理论部分——你学会了用齐次变换矩阵描述空间位置、用DH参数建立运动学模型、用拉格朗日方程推导动力学、用PID和MPC控制机器人运动。从现在开始，我们把目光转向工程实现。为什么要专门花一章来讲ROS 2？因为在我八年的机器人开发生涯里，几乎每一个让我通宵调试的bug，最终都归结为对ROS 2机制理解不够深——而不是运动学算错了。</p>
 
         <p>ROS 2是机器人行业的"操作系统"——它不控制你的硬件，但它管理你的代码如何通信、如何协作、如何复用。2026年的今天，ROS 2 Jazzy Jalisco是长期支持版本，也是全球绝大多数机器人的软件基础。如果你想进入这个行业，ROS 2是绕不过去的第一道坎。</p>
 
-        <h3>15.1 为什么需要ROS 2</h3>
+        <h2>15.1 为什么需要ROS 2</h2>
 
         <p>ROS 1（即Robot Operating System 1，2007年由斯坦福AI实验室和Willow Garage推出）曾经是机器人研究的标准平台，但也暴露了越来越多的架构缺陷。</p>
 
@@ -114,7 +129,7 @@
 
         <p>如果你现在还在用ROS 1做新项目，我建议你认真考虑迁移——这就像2026年还在用Python 2写生产代码一样，不是不能跑，但已经没有人帮你维护了。</p>
 
-        <h3>15.2 ROS 2核心概念</h3>
+        <h2>15.2 ROS 2核心概念</h2>
 
         <p>ROS 2中有四个核心通信原语：Topic、Service、Action和Parameter。理解它们的区别和适用场景，是写出好ROS 2代码的基础。</p>
 
@@ -132,7 +147,38 @@
             <p><strong>实用建议</strong>：选择通信原型时记住这个决策树——如果是连续数据流（传感器、状态），用Topic；如果是离散的查询（请求一个值、触发一次动作），用Service；如果是长时间执行的任务（导航到点、轨迹跟踪），用Action；如果是运行时配置项（增益、阈值、标志位），用Parameter。</p>
         </div>
 
-        <h3>15.3 DDS与QoS</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig15a-title fig15a-desc" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig15a-title">ROS 2 节点之间的 Topic 与 Service 通信</title>
+                <desc id="fig15a-desc">三个节点从相机驱动到检测、再到控制依次串联，两段之间用 Topic 单向传输数据；下方的参数服务节点通过 Service 与检测节点双向请求-回复。</desc>
+                <rect width="600" height="300" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig15a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                    <marker id="fig15a-arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0e7490"/></marker>
+                </defs>
+                <g stroke="#334155" stroke-width="3" fill="none" marker-end="url(#fig15a-arrow)">
+                    <line x1="112" y1="90" x2="246" y2="90"/><line x1="312" y1="90" x2="446" y2="90"/>
+                </g>
+                <g stroke="#0e7490" stroke-width="3" fill="none" stroke-dasharray="6 5">
+                    <line x1="280" y1="124" x2="280" y2="188" marker-end="url(#fig15a-arrow2)"/>
+                </g>
+                <g fill="#dbeafe" stroke="#1d4ed8" stroke-width="3">
+                    <circle cx="80" cy="90" r="34"/><circle cx="280" cy="90" r="34"/><circle cx="480" cy="90" r="34"/>
+                </g>
+                <circle cx="280" cy="220" r="32" fill="#d6f1eb" stroke="#0e7490" stroke-width="3"/>
+                <g font-family="'PingFang SC',system-ui,sans-serif" text-anchor="middle">
+                    <g fill="#0f172a" font-size="13"><text x="80" y="88">相机</text><text x="80" y="104">驱动</text>
+                    <text x="280" y="88">检测</text><text x="280" y="104">节点</text>
+                    <text x="480" y="88">控制</text><text x="480" y="104">节点</text>
+                    <text x="280" y="225" font-size="13">参数服务</text></g>
+                    <g fill="#475569" font-size="12"><text x="179" y="80">/image (Topic)</text><text x="379" y="80">/detections (Topic)</text>
+                    <text x="378" y="160" fill="#0e7490">/get_param (Service)</text></g>
+                </g>
+            </svg>
+            <figcaption>ROS 2 四种通信原语中最常用的两种。Topic 是发布-订阅、单向异步的数据流（如相机图像、检测结果）；Service 是请求-回复、同步一对一的调用（如查询参数、触发标定）。Action（长时间任务）与 Parameter（运行时配置）建立在它们之上。此图为教学示意。</figcaption>
+        </figure>
+
+        <h2>15.3 DDS与QoS</h2>
 
         <p>DDS是ROS 2的通信基石，而QoS（Quality of Service）是DDS最强大的特性。很多人在使用ROS 2时遇到"收不到消息""消息延迟""系统卡顿"等问题，归根结底是对QoS配置不当。</p>
 
@@ -196,7 +242,7 @@
             <p><strong>踩坑实录</strong>：2023年我在调试一台七轴协作机器人的力控模块时，花了整整三天才定位到一个bug——力传感器数据以1kHz发布，控制节点订阅时系统默认的QoS History深度只有10，导致控制算法的历史窗口总是空的。结果力控反而变成了正反馈，机器人疯狂震荡。后来我把Subscriber的QoS显式设置为History Depth=100，问题立刻消失。教训很简单：<strong>永远不要依赖默认QoS</strong>，显式配置你需要的每一个参数。</p>
         </div>
 
-        <h3>15.4 TF2坐标变换</h3>
+        <h2>15.4 TF2坐标变换</h2>
 
         <p>在机器人系统中，几乎每次数据交互都涉及坐标变换。相机检测到目标在相机坐标系下的位置，但机械臂需要在基座坐标系下规划轨迹；激光雷达扫描到的障碍物需要映射到全局地图坐标系。TF2就是ROS 2中专为坐标变换设计的框架。</p>
 
@@ -210,7 +256,7 @@
             <p><strong>避坑技巧</strong>：TF2的Buffer大小默认只有10秒。如果你的机器人某个Transform的发布频率很低（比如GPS定位以1Hz更新），你可能需要增加Buffer Duration。我在做户外机器人时，就因为默认Buffer不够长，导致<code>lookupTransform</code>经常抛出"ExtrapolationException"——看起来像是代码bug，实际上只是缓存时间不够。</p>
         </div>
 
-        <h3>15.5 Launch文件与节点组合</h3>
+        <h2>15.5 Launch文件与节点组合</h2>
 
         <p>一个机器人系统通常包含数十个节点。手动在每个终端里执行<code>ros2 run</code>是不现实的，ROS 2提供了Launch系统来自动化这个过程。</p>
 
@@ -251,7 +297,7 @@ ros2 component load /ComponentManager \
 
         <p><strong>Managed Nodes（生命周期节点）</strong>：对于有严格启动顺序的系统（先启动硬件驱动→再启动状态估计→再启动规划器），Managed Nodes提供了标准的状态机模型：<code>Unconfigured → Inactive → Active → Finalized</code>。每个状态转换会调用对应的回调函数，确保节点按正确顺序初始化和运行。</p>
 
-        <h3>15.6 实战：Python/C++ ROS 2节点</h3>
+        <h2>15.6 实战：Python/C++ ROS 2节点</h2>
 
         <p>理论说再多也不如动手写一段代码。下面我分别给出Python和C++的Publisher/Subscriber完整例子——这是ROS 2编程的"Hello World"，但我会展示工业级的最佳实践。</p>
 
@@ -350,12 +396,20 @@ int main(int argc, char** argv)
 
         <p>本章我们深入讲解了ROS 2的设计动机、核心通信原语、DDS与QoS配置、TF2坐标变换、Launch系统，以及实际的Python/C++编程示例。ROS 2是机器人软件领域的"通用语言"，掌握它之后你就能与全球的机器人开发者高效协作。下一章，我们将把ROS 2系统和机器人仿真结合起来——<strong>机器人仿真</strong>，这是从算法到真机之间不可或缺的一步。</p>
 
+        <h2>15.7 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Macenski, S., Foote, T., Gerkey, B., Lalancette, C., & Woodall, W. (2022). Robot Operating System 2: Design, architecture, and uses in the wild. <em>Science Robotics</em>, 7(66), eabm6074。本章 ROS 2 架构、通信原语与 QoS（15.2–15.3 节）的权威综述。 <a href="https://doi.org/10.1126/scirobotics.abm6074">doi:10.1126/scirobotics.abm6074</a></li>
+            <li>ROS 2 官方文档（15.4–15.6 节）：TF2、Launch 与节点组合。 <a href="https://docs.ros.org/">docs.ros.org</a>。本章中 Jazzy LTS 的支持年份为公开路线图资料。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="14.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="16.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
