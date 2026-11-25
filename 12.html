@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第12章 轨迹生成</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第12章 轨迹生成</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第12章 轨迹生成</h1>
 
         <p>大家好，我是你们的讲师。到今天为止，我们已经建立了完整的运动学和动力学基础——我们知道了机器人能做什么（运动学），以及需要多大的力去做（动力学）。但有一个关键问题还没解决：<strong>机器人到底应该怎么动？</strong>起点在哪里、终点在哪里、中间经过哪些点、用多快的速度运动——这就是轨迹生成（Trajectory Generation）。</p>
 
         <p>你可能觉得这很简单——直接从A点线性插值到B点不就行了？但真实情况远比这复杂：运动太急会激发机械结构的振动模态；加速度过大可能超过电机扭矩极限；末端走直线虽然直观但可能造成关节角度的剧烈跳动。好的轨迹生成算法是"又快又稳又安全"的艺术——它直接影响机器人的节拍时间、定位精度和设备寿命。</p>
 
-        <h3>12.1 关节空间 vs 任务空间规划</h3>
+        <h2>12.1 关节空间 vs 任务空间规划</h2>
 
         <p>轨迹规划有两大"战场"：关节空间和任务空间。它们的差异不仅在于坐标系不同，更在于工程实践中的优劣取舍。</p>
 
@@ -88,7 +103,7 @@
 
         <p>在实际项目中，两种规划方式经常混合使用。例如：机器人抓取一个零件后，先在关节空间快速运动到一个过渡点（远离障碍物），然后在任务空间精确逼近目标位置。</p>
 
-        <h3>12.2 梯形与S形速度曲线</h3>
+        <h2>12.2 梯形与S形速度曲线</h2>
 
         <p>最基础的轨迹规划方法是梯形速度曲线（Trapezoidal Velocity Profile）。它将运动分成三个阶段：匀加速、匀速、匀减速。三段式的速度曲线在视觉上像一个梯形，因此得名。</p>
 
@@ -136,7 +151,31 @@
             <p><strong>工程经验</strong>：对于码垛和搬运这类节拍优先的任务，梯形曲线就够用了——节拍可以快5-10%。但对于精密装配、打磨、焊接等对末端稳定性要求高的任务，一定要用S形曲线。另外，如果你发现机器人在加减速切换点有明显振动，一个临时方案是降低加速度设定值——但治本之策是换用S形曲线或B样条插值。</p>
         </div>
 
-        <h3>12.3 多项式与样条插值</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig12a-title fig12a-desc" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig12a-title">梯形与 S 形速度曲线的对比</title>
+                <desc id="fig12a-desc">左图的梯形曲线在加速段与勺速段之间速度折线有尖角，加速度在切换点跳变；右图的 S 形曲线用加加速度受限的平滑过渡，速度曲线无尖角，加速度连续。</desc>
+                <rect width="640" height="240" rx="18" fill="#f8fbf7"/>
+                <g stroke="#94a3b8" stroke-width="1.5">
+                    <line x1="60" y1="190" x2="280" y2="190"/><line x1="60" y1="190" x2="60" y2="50"/>
+                    <line x1="360" y1="190" x2="580" y2="190"/><line x1="360" y1="190" x2="360" y2="50"/>
+                </g>
+                <polygon points="60,190 100,60 200,60 240,190" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/>
+                <path d="M360 190 C385 190 385 60 410 60 L530 60 C555 60 555 190 580 190" fill="#ffe3c2" stroke="#c2410c" stroke-width="3"/>
+                <g font-family="'PingFang SC',system-ui,sans-serif" fill="#475569">
+                    <text x="170" y="224" font-size="13" text-anchor="middle" fill="#1d4ed8">梯形速度曲线</text>
+                    <text x="470" y="224" font-size="13" text-anchor="middle" fill="#c2410c">S 形速度曲线</text>
+                    <text x="70" y="62" font-size="12">v_max</text>
+                    <text x="370" y="62" font-size="12">v_max</text>
+                    <text x="270" y="200" font-size="11" text-anchor="end">t</text>
+                    <text x="570" y="200" font-size="11" text-anchor="end">t</text>
+                    <text x="78" y="74" font-size="11">加速跳变</text>
+                </g>
+            </svg>
+            <figcaption>两种常见的速度曲线。梯形曲线（蓝）只限制最大速度与最大加速度，加速度在起点、起勺速点等处突然跳变；S 形曲线（橙）额外限制加加速度（jerk），速度曲线无尖角、加速度连续，因而冲击与残余振动更小。两者的总位移相同，但 S 形曲线通常需要更长的运行时间。此为教学示意。</figcaption>
+        </figure>
+
+        <h2>12.3 多项式与样条插值</h2>
 
         <p>当机器人需要经过多个中间点（Via-Point）时，仅靠梯形或S形曲线是不够的——我们需要插值方法让轨迹光滑地穿过所有指定点。</p>
 
@@ -172,7 +211,7 @@ print(f"加速度是否连续: {np.all(np.isfinite(a_dense))}")</code></pre>
             <p><strong>选型建议</strong>：如果你的via-point较少（≤5个），且不需要实时修改，用五次多项式就够了。如果via-point很多（如示教轨迹的回放），用CubicSpline或B样条。如果你需要在实时系统中调整轨迹（如动态避障），B样条是唯一的选择——只有它支持局部调整而不重新计算全局轨迹。</p>
         </div>
 
-        <h3>12.4 时间最优轨迹</h3>
+        <h2>12.4 时间最优轨迹</h2>
 
         <p>前面我们讨论的轨迹规划都是"给定时间，生成轨迹"。但更实际的问题是：<strong>给定机器人运动学/动力学约束，最短需要多少时间完成这条路径？</strong>这就是时间最优轨迹规划（Time-Optimal Path Parameterization, TOPP）。</p>
 
@@ -198,7 +237,7 @@ def compute_velocity_limits(s, path, model, q_max, tau_max):
 
         <p>TOPP的学术研究非常成熟——ETH的TOPP-RA算法可以在几毫秒内求解几十个路径点的最优轨迹。ROS MoveIt 2中的时间最优规划就使用了类似的算法。在2026年，TOPP已经集成到了OMPL和MoveIt 2的标准管线中。</p>
 
-        <h3>12.5 实战：Python轨迹生成</h3>
+        <h2>12.5 实战：Python轨迹生成</h2>
 
         <p>下面是一个完整的实战示例：使用多项式插值生成关节空间轨迹，并可视化结果。</p>
 
@@ -252,12 +291,20 @@ print("轨迹验证通过：速度和加速度均在极限范围内")</code></pr
 
         <p>轨迹告诉机器人去哪——但真正保证它去到那里的，是控制。下一章我们将进入机器人控制最核心的话题：<strong>PID与反馈控制</strong>。</p>
 
+        <h2>12.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Biagiotti, L., & Melchiorri, C. (2008). <em>Trajectory Planning for Automatic Machines and Robots</em>. Springer。梯形/S 形速度曲线与多项式、B 样条插值的系统参考（12.2–12.3 节）。 <a href="https://doi.org/10.1007/978-3-540-85623-8">doi:10.1007/978-3-540-85623-8</a></li>
+            <li>Siciliano, B., et al. (2010). <em>Robotics: Modelling, Planning and Control</em>. Springer。关节空间与任务空间轨迹规划、时间最优路径参数化（12.1、12.4 节）的教科书推导。 <a href="https://doi.org/10.1007/978-1-84628-642-1">doi:10.1007/978-1-84628-642-1</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="11.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="13.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
