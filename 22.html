@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第22章 机器人学习</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第22章 机器人学习</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第22章 机器人学习</h1>
 
         <p>大家好，我是你们的讲师。传统机器人学的本质是"编程"——工程师写下运动学方程、规划算法和控制律，机器人严格按照代码执行。这种方法精确、可解释、安全——但也意味着每一个动作都需要工程师显式定义。如果想让机器人学会一个新技能，比如"用螺丝刀拧螺丝"，传统方法需要你写出完整的运动学模型、规划出精确的轨迹、调好PID参数。但如果是让机器人"学会"拧螺丝——给它看一些人类演示，然后让它自己练习——这就是<strong>机器人学习（Robot Learning）</strong>的领域。</p>
 
         <p>2026年是机器人学习的"iPhone时刻"。HuggingFace的LeRobot社区已经积累了超过20万条机器人操作轨迹，OpenVLA提供了开源的大模型基础，扩散策略（Diffusion Policy）在多个基准测试上超越了传统强化学习。更激动人心的是，Sim-to-Real迁移技术已经成熟到可以在仿真中训练一个策略然后零样本部署到真机上——宇树H2 Plus的走路能力就是在Isaac Sim中训练后直接运行的。这一章我们从模仿学习讲起，经过强化学习、Sim-to-Real、扩散策略，最后到VLA大模型的预览，给你画出一张完整的2026年机器人学习地图。</p>
 
-        <h3>22.1 模仿学习</h3>
+        <h2>22.1 模仿学习</h2>
 
         <p>模仿学习（Imitation Learning）是最直观的机器人学习范式：人类示教——机器人模仿。你操作机械臂完成一次抓取，记录下关节角度序列和相机图像；重复很多次之后，让机器人从这些示教数据中学习一个"从观测到动作"的映射。</p>
 
@@ -63,7 +78,7 @@
             <p><strong>关键洞察</strong>：模仿学习的本质瓶颈是数据——一个好的机器人操作数据集的质量和数量直接决定了最终策略的泛化能力。2026年，LeRobot、Open X-Embodiment和DROID等开源数据集已经包含了数万条高质量的示教轨迹，覆盖了抓取、放置、推动、组装等常见操作技能。如果你想做机器人学习，第一步不是写模型代码，而是<strong>找到一个与你的机器人配置接近的开源数据集</strong>。</p>
         </div>
 
-        <h3>22.2 强化学习基础</h3>
+        <h2>22.2 强化学习基础</h2>
 
         <p>如果说模仿学习是"看老师做然后复制"，那强化学习（Reinforcement Learning, RL）就是"自己试错然后总结经验"。RL的框架用<strong>马尔可夫决策过程（MDP）</strong>来描述：在每个时间步，机器人处于状态s，执行动作a，转移到新状态s'，并获得奖励r。RL的目标是找到一个策略 π(a|s) 使得累积奖励的期望最大。</p>
 
@@ -82,7 +97,33 @@
             <p>我经历过一次印象深刻的RL翻车事件。当时我们在训练一个机械臂"把方块推到目标位置"的任务，奖励函数设置为"方块到目标位置的距离减少"。跑了三天训练后，策略的奖励曲线漂亮地收敛了——但我们在评测时发现了一个哭笑不得的现象：机械臂学会了一个"作弊"行为——它先快速地把方块推过目标位置（奖励增加），然后快速回拉（距离又减少了），通过反复"推-拉"来反复获取密集的奖励，而方块最终根本没有停留在目标位置！这就是经典"reward hacking"问题。解决方案是改用稀疏奖励加成功判断（方块最终停留位置是否在目标范围内），虽然训练速度慢了，但学到的策略是正确的。这个教训让我定了一条铁律：<strong>在训练过程中不要只看奖励曲线，每周做一次真机评测</strong>——有时策略欺骗了你，但真机不会。</p>
         </div>
 
-        <h3>22.3 Sim-to-Real迁移</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig22a-title fig22a-desc" viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig22a-title">强化学习的智能体-环境交互回路</title>
+                <desc id="fig22a-desc">智能体根据策略选择动作，环境接收动作后转移到新状态并给出奖励，状态与奖励又回传给智能体，如此循环。</desc>
+                <rect width="640" height="240" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig22a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <g stroke="#334155" stroke-width="3" fill="none" marker-end="url(#fig22a-arrow)">
+                    <line x1="222" y1="100" x2="414" y2="100"/>
+                    <line x1="414" y1="150" x2="222" y2="150"/>
+                </g>
+                <rect x="90" y="90" width="130" height="70" rx="12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/>
+                <rect x="420" y="90" width="130" height="70" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="3"/>
+                <g font-family="'PingFang SC',system-ui,sans-serif" text-anchor="middle">
+                    <text x="155" y="120" font-size="15" fill="#0f172a">智能体</text>
+                    <text x="155" y="141" font-size="12" fill="#1d4ed8">策略 π(a|s)</text>
+                    <text x="485" y="120" font-size="15" fill="#0f172a">环境</text>
+                    <text x="485" y="141" font-size="12" fill="#15803d">动力学 / 奖励</text>
+                    <text x="318" y="90" font-size="12" fill="#475569">动作 a_t</text>
+                    <text x="318" y="176" font-size="12" fill="#475569">状态 s_{t+1} · 奖励 r_{t+1}</text>
+                </g>
+            </svg>
+            <figcaption>强化学习的核心回路：智能体按照策略选择动作，环境执行后返回新状态与奖励，智能体再用这些反馈更新策略。这个循环使机器人可以在“试错”中学会策略，但代价是需要大量交互数据——这也是 22.3 节要用仿真加速、22.4 节用扩散模型从示教数据中学习的原因。此图为教学示意。</figcaption>
+        </figure>
+
+        <h2>22.3 Sim-to-Real迁移</h2>
 
         <p>在真实机器人上跑RL的最大问题是：数据采集效率太低（机器人跑一天也积累不了多少训练数据），而且犯错可能导致物理损坏。Sim-to-Real（仿真到真机迁移）正是为了解决这个问题——在仿真中大规模训练，然后迁移到真实机器人上。</p>
 
@@ -94,7 +135,7 @@
 
         <p>除了域随机化，<strong>域适应（Domain Adaptation）</strong>和<strong>迭代自优化（Iterative Real-World Refinement）</strong>也是常用的补充手段。域适应通过学习一个"风格迁移"网络，将真实图像映射到仿真风格（或反之），缩小视觉域的差距。迭代自优化则是在真机上跑一小段后，收集真实数据，微调策略——这样结合了仿真的大规模训练和真机的准确数据。2026年的SOTA已经是"仿真预训练 + 少量真机微调"的范式，通常只需要20-50次真机交互就能将仿真策略适配到真机上。</p>
 
-        <h3>22.4 Diffusion Policy</h3>
+        <h2>22.4 Diffusion Policy</h2>
 
         <p>2023-2026年间，扩散模型从图像生成领域"跨界"到了机器人动作生成——这就是<strong>Diffusion Policy</strong>。它的核心洞察非常巧妙：机器人的动作生成本质上和图像生成一样，需要从一个复杂的高维分布中采样。而扩散模型恰好是这个领域最强大的工具。</p>
 
@@ -104,7 +145,7 @@
 
         <p>2026年，Diffusion Policy有一项重要的改进——<strong>DiSPo（Diffusion Policy with Multi-Granularity Action Generation）</strong>，来自KAIST（韩国科学技术院）。DiSPo在多个时间粒度上同时生成动作：粗粒度规划未来几秒的高层动作（如"向左移动"），细粒度规划未来几十毫秒的低层电机指令（如"增大关节扭矩0.5Nm"）。这种多粒度生成策略同时保证了规划的一致性（粗粒度）和执行的精细度（细粒度），在长时域操作任务上明显优于原始的Diffusion Policy。</p>
 
-        <h3>22.5 LeRobot工具链实战</h3>
+        <h2>22.5 LeRobot工具链实战</h2>
 
         <p>理论讲了不少，我们来点实际的。<strong>LeRobot</strong>是HuggingFace在2024年发起的开源机器人学习社区和工具链，到2026年已经成为机器人学习领域的事实标准平台。它提供了从数据采集、策略训练到真机部署的完整流程。</p>
 
@@ -202,7 +243,7 @@ for action in action_chunk:
             </tr>
         </table>
 
-        <h3>22.6 2026前沿：VLA大模型预览</h3>
+        <h2>22.6 2026前沿：VLA大模型预览</h2>
 
         <p>作为本章的"彩蛋"，我们来快速预览一下当前最火爆的方向——<strong>VLA（Vision-Language-Action，视觉-语言-动作）大模型</strong>。VLA模型将视觉理解、语言推理和动作生成统一到一个端到端的神经网络中——你不再需要分别搭建目标检测→路径规划→运动学解算的管道，而是对模型说一句话，它直接输出机器人动作。</p>
 
@@ -222,12 +263,21 @@ for action in action_chunk:
 
         <p>学完这么多方法论，你肯定已经迫不及待想动手了。但在动手之前，我们需要面对一个现实问题：<strong>当机器人在真机上出了故障，该怎么调试和诊断？</strong>下一章我们进入<strong>机器人调试与诊断</strong>，讨论从日志分析、传感器故障排查到控制系统诊断的实战技巧。下一章见。</p>
 
+        <h2>22.7 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Sutton, R. S., & Barto, A. G. (2018). <em>Reinforcement Learning: An Introduction</em> (2nd ed.). MIT Press。本章 22.2 节强化学习基础（策略、价值、交互回路）的权威教材。 <a href="http://incompleteideas.net/book/the-book-2nd.html">incompleteideas.net/book</a></li>
+            <li>Chi, C., et al. (2023). Diffusion Policy: Visuomotor Policy Learning via Action Diffusion。本章 22.4 节 Diffusion Policy 的原始文献。 <a href="https://arxiv.org/abs/2303.04137">arXiv:2303.04137</a></li>
+            <li>O'Neill, A., et al. (2023). Open X-Embodiment: Robotic Learning Datasets and RT-X Models。本章 22.6 节 VLA / RT-X 大模型预览的原始文献。 <a href="https://arxiv.org/abs/2310.08864">arXiv:2310.08864</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="21.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="23.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
