@@ -5,11 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第6章 机器人机构学基础</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +53,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第6章 机器人机构学基础</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第6章 机器人机构学基础</h1>
 
         <p>大家好，我是你们的讲师。上一章我们学会了如何用数学工具描述一个刚体在空间中的位姿，以及如何在坐标系之间做变换。现在，我们把目光从"单个刚体"转向"多个刚体的组合"——机器人本身就是由多个连杆通过关节连接而成的机构系统。这一章的主题是<strong>机构学（Mechanism）</strong>，它研究的是：这些连杆和关节如何连接、能产生哪些运动、有哪些限制，以及在什么情况下会失效。</p>
 
         <p>我见过很多做机器人算法的同学，一头扎进控制代码和深度学习模型里，对机械结构完全不关心。结果一到真机部署就出问题——算法在仿真里跑得好好的，到了真机上机械臂的运动范围超出了关节限位、末端精度远低于预期、甚至在某个位形下机器人"锁死"了（奇异位形）。这些问题的根源都在机构学。相信我，<strong>理解你的机器人的机构，和理解你的控制算法一样重要</strong>。</p>
 
-        <h3>6.1 自由度与约束</h3>
+        <h2>6.1 自由度与约束</h2>
 
         <p><strong>自由度（Degree of Freedom, DOF）</strong>是机构学中最基本的概念。一个物体在三维空间中自由运动时有6个自由度（3个平移 + 3个旋转）。当它通过关节与其他物体连接时，关节施加约束，自由度减少。</p>
 
@@ -80,7 +93,7 @@ M = 3*(N - 1 - J) + Σ_{i=1}^J f_i
             <p><strong>关键认知</strong>：自由度计算的本质是"你能独立控制的运动数量"。六轴机械臂的6个自由度刚好能控制末端在三维空间中的完整位姿（3位置+3姿态）。如果任务只需要位置（比如点胶），5个自由度的SCARA就足够了——用6轴反而是浪费。反过来，如果任务需要避开障碍物同时保持末端姿态，你需要冗余自由度（7轴）。选择多少自由度，取决于任务的最小需求。</p>
         </div>
 
-        <h3>6.2 关节类型与连杆</h3>
+        <h2>6.2 关节类型与连杆</h2>
 
         <p>机器人的运动能力最终由关节的类型和连杆的几何参数决定。常见的关节类型有：</p>
 
@@ -96,7 +109,7 @@ M = 3*(N - 1 - J) + Σ_{i=1}^J f_i
 
         <p>连杆和关节构成<strong>运动链（Kinematic Chain）</strong>。运动链有两种基本形式：开链（Open Chain）和闭链（Closed Chain）。绝大多数工业机械臂是开链——从基座到末端，关节串联，没有闭环。而并联机构（如Stewart平台）是多条运动链并行连接，形成闭环。</p>
 
-        <h3>6.3 串联与并联机构</h3>
+        <h2>6.3 串联与并联机构</h2>
 
         <p><strong>串联机构（Serial Manipulator）</strong>和<strong>并联机构（Parallel Manipulator）</strong>代表了机器人机构设计的两个极端，各有显著的优缺点。</p>
 
@@ -157,7 +170,43 @@ M = 3*(N - 1 - J) + Σ_{i=1}^J f_i
             <p><strong>知识点</strong>：近年来，混合机构（Hybrid Mechanism）开始流行——将串联和并联混合使用。例如，协作机器人KUKA iiwa使用串联结构但每个关节内置扭矩传感器，实现了"串联的灵活性 + 力控的精度"。而一些新一代人形机器人的腿部采用了"串并混联"——髋关节用并联机构提供高刚度，膝关节和踝关节用串联机构提供灵活性。这种混合设计正在成为行业趋势。</p>
         </div>
 
-        <h3>6.4 工作空间与灵巧度</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig06a-title fig06a-desc" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig06a-title">串联机构与并联机构的拓扑对比</title>
+                <desc id="fig06a-desc">左图是一条从基座到末端逐级串联的 6R 开链机械臂；右图是 Stewart 平台，动平台与定平台之间由六条支腿并联连接，形成闭环。</desc>
+                <rect width="640" height="260" rx="18" fill="#f8fbf7"/>
+                <g fill="#0f172a" font-size="16" text-anchor="middle" font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="170" y="32">串联（开链）</text>
+                    <text x="470" y="32">并联（闭链）</text>
+                </g>
+                <g stroke="#0e7490" stroke-width="10" stroke-linecap="round">
+                    <line x1="70" y1="215" x2="115" y2="170"/>
+                    <line x1="115" y1="170" x2="168" y2="142"/>
+                    <line x1="168" y1="142" x2="228" y2="122"/>
+                    <line x1="228" y1="122" x2="288" y2="112"/>
+                </g>
+                <g fill="#ea580c" stroke="#fff" stroke-width="3">
+                    <circle cx="70" cy="215" r="9"/>
+                    <circle cx="115" cy="170" r="9"/>
+                    <circle cx="168" cy="142" r="9"/>
+                    <circle cx="228" cy="122" r="9"/>
+                    <circle cx="288" cy="112" r="9"/>
+                </g>
+                <text x="300" y="100" font-size="13" fill="#475569" font-family="'PingFang SC',system-ui,sans-serif">末端</text>
+                <line x1="320" y1="40" x2="320" y2="235" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 6"/>
+                <g stroke="#0e7490" stroke-width="6">
+                    <line x1="375" y1="190" x2="430" y2="120"/><line x1="455" y1="196" x2="440" y2="120"/>
+                    <line x1="530" y1="190" x2="470" y2="120"/><line x1="555" y1="180" x2="510" y2="120"/>
+                    <line x1="390" y1="150" x2="450" y2="122"/><line x1="550" y1="150" x2="470" y2="122"/>
+                </g>
+                <polygon points="395,196 460,204 540,196 555,178 490,168 380,178" fill="#c7e9e2" stroke="#0e7490" stroke-width="3"/>
+                <polygon points="430,114 470,108 510,114 512,126 470,130 432,126" fill="#ffe3c2" stroke="#c2410c" stroke-width="3"/>
+                <text x="470" y="236" font-size="13" fill="#475569" text-anchor="middle" font-family="'PingFang SC',system-ui,sans-serif">驱动器近基座 · 刚度高 · 工作空间小</text>
+            </svg>
+            <figcaption>串联与并联的拓扑差异。串联机构（如 6R 机械臂）误差沿链条<strong>逐级累积</strong>、末端刚度最差；并联机构（如 Stewart 平台）由多条支腿<strong>共同约束</strong>同一动平台，误差被平均、刚度高，但动平台只能在小范围运动。此为教学示意，非按真实比例绘制。</figcaption>
+        </figure>
+
+        <h2>6.4 工作空间与灵巧度</h2>
 
         <p><strong>工作空间（Workspace）</strong>是指机器人末端可到达的所有位置集合。它分为两种：</p>
 
@@ -168,13 +217,13 @@ M = 3*(N - 1 - J) + Σ_{i=1}^J f_i
 
         <p>灵巧工作空间通常远小于可达工作空间。举个例子，六轴机械臂在靠近其基座的位置，虽然末端能到达（可达），但可实现的姿态范围非常有限（不灵巧）。而在工作空间中心区域，末端可以在很大范围的姿态下到达同一点——这就是灵巧空间。</p>
 
-        <p><strong>可操作性（Manipulability）</strong>是衡量机器人在特定位形下运动能力的量化指标。Yoshikawa定义了可操作性指数：\(w = \sqrt{\det(\mathbf{J}(\mathbf{q}) \mathbf{J}(\mathbf{q})^T)}\)，其中 \(\mathbf{J}\) 是Jacobian矩阵。这个几何意义是Jacobian矩阵的奇异值之积——可以理解为"末端速度空间椭球的体积"。体积越大，机器人在该位形下的运动能力越强，越接近"灵巧"状态。当 \(w = 0\) 时，机器人处于奇异位形。</p>
+        <p><strong>可操作性（Manipulability）</strong>是衡量机器人在特定位形下运动能力的量化指标。Yoshikawa定义了可操作性指数：<math class="math-inline" aria-label="可操作性指数 w 等于雅可比矩阵 J 与 J 转置乘积的行列式的平方根"><mi>w</mi><mo>=</mo><msqrt><mi>det</mi><mo>(</mo><mi>J</mi><msup><mi>J</mi><mi>T</mi></msup><mo>)</mo></msqrt></math>，其中 <math class="math-inline" aria-label="雅可比矩阵 J"><mi>J</mi></math> 是Jacobian矩阵。这个几何意义是Jacobian矩阵的奇异值之积——可以理解为"末端速度空间椭球的体积"。体积越大，机器人在该位形下的运动能力越强，越接近"灵巧"状态。当 <math class="math-inline" aria-label="可操作性指数等于零"><mi>w</mi><mo>=</mo><mn>0</mn></math> 时，机器人处于奇异位形。</p>
 
-        <p>可操作性椭球（Manipulability Ellipsoid）是一个更直观的工具。将Jacobian的SVD得到的奇异值 \(\sigma_1, \sigma_2, \ldots, \sigma_6\) 作为椭球的轴长，轴的方向由对应的左奇异向量给出。这个椭球告诉你：在当前的关节位形下，末端在哪个方向上运动最容易（长轴方向），哪个方向上最困难（短轴方向）。在轨迹规划时聪明的做法是尽量让椭球的长轴指向所需运动方向——这样可以最小化关节速度和力矩。</p>
+        <p>可操作性椭球（Manipulability Ellipsoid）是一个更直观的工具。将Jacobian的SVD得到的奇异值 <math class="math-inline" aria-label="从 sigma 1 到 sigma 6 的六个奇异值"><msub><mi>σ</mi><mn>1</mn></msub><mo>,</mo><msub><mi>σ</mi><mn>2</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>σ</mi><mn>6</mn></msub></math> 作为椭球的轴长，轴的方向由对应的左奇异向量给出。这个椭球告诉你：在当前的关节位形下，末端在哪个方向上运动最容易（长轴方向），哪个方向上最困难（短轴方向）。在轨迹规划时聪明的做法是尽量让椭球的长轴指向所需运动方向——这样可以最小化关节速度和力矩。</p>
 
-        <h3>6.5 奇异位形</h3>
+        <h2>6.5 奇异位形</h2>
 
-        <p><strong>奇异位形（Singularity）</strong>是机器人机构学中最重要也最头疼的概念。当机器人处于奇异位形时，Jacobian矩阵 \(\mathbf{J}\) 的秩降低，即某些方向上末端失去运动能力（或反转：在某些方向上，微小末端运动需要极大的关节速度）。</p>
+        <p><strong>奇异位形（Singularity）</strong>是机器人机构学中最重要也最头疼的概念。当机器人处于奇异位形时，Jacobian矩阵 <math class="math-inline" aria-label="雅可比矩阵 J"><mi>J</mi></math> 的秩降低，即某些方向上末端失去运动能力（或反转：在某些方向上，微小末端运动需要极大的关节速度）。</p>
 
         <p>奇异位形分为两大类：</p>
 
@@ -185,10 +234,10 @@ M = 3*(N - 1 - J) + Σ_{i=1}^J f_i
         <p>我用一个个人经历来说明奇异位形的危害。在一次汽车零部件焊接项目中，焊接机械臂在某条焊缝的中点附近突然剧烈抖动，焊点全部偏位，导致一批零件报废。排查发现，机器人示教时设置的路径恰好经过了一个内部奇异点。当机器人接近奇异点时，Jacobian的条件数急剧增大，微小焊接误差在逆运动学求解时被放大，导致关节速度指令剧烈振荡。解决方案很简单——在奇异点附近额外添加一个途经点，让路径平滑地绕过奇异区域。从此之后，我在任何轨迹规划任务中都会先做奇异点检测：计算路径上每个点的Jacobian条件数，如果超过阈值就自动插入路径修正。</p>
 
         <div class="warning">
-            <p><strong>避坑指南</strong>：处理奇异位形有三种主流策略。(1) <strong>回避策略</strong>——在轨迹规划阶段就绕开奇异区域，优点是安全可靠，缺点是可能限制工作空间。(2) <strong>阻尼最小二乘（DLS）</strong>——在逆运动学求解时加入阻尼项 \(\mathbf{J}^T(\mathbf{J}\mathbf{J}^T + \lambda^2\mathbf{I})^{-1}\)，在奇异点附近牺牲精度换取稳定性，这是实践中用的最多的方法。(3) <strong>奇异分离</strong>——将运动分解为"奇异方向"和"非奇异方向"，只在非奇异方向上求解，奇异方向上的分量由冗余关节或机构吸收。第10章我们会详细讨论这些方法。</p>
+            <p><strong>避坑指南</strong>：处理奇异位形有三种主流策略。(1) <strong>回避策略</strong>——在轨迹规划阶段就绕开奇异区域，优点是安全可靠，缺点是可能限制工作空间。(2) <strong>阻尼最小二乘（DLS）</strong>——在逆运动学求解时加入阻尼项 <math class="math-inline" aria-label="J 转置乘括号 J J 转置加 lambda 平方乘单位阵的逆"><msup><mi>J</mi><mi>T</mi></msup><msup><mrow><mo>(</mo><mi>J</mi><msup><mi>J</mi><mi>T</mi></msup><mo>+</mo><msup><mi>λ</mi><mn>2</mn></msup><mi>I</mi><mo>)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup></math>，在奇异点附近牺牲精度换取稳定性，这是实践中用的最多的方法。(3) <strong>奇异分离</strong>——将运动分解为"奇异方向"和"非奇异方向"，只在非奇异方向上求解，奇异方向上的分量由冗余关节或机构吸收。第10章我们会详细讨论这些方法。</p>
         </div>
 
-        <h3>6.6 常见机器人机构自由度计算</h3>
+        <h2>6.6 常见机器人机构自由度计算</h2>
 
         <table>
             <thead>
@@ -248,12 +297,21 @@ M = 3*(N - 1 - J) + Σ_{i=1}^J f_i
 
         <p>机构决定了机器人能怎么动，而<strong>传感器和执行器</strong>决定了它如何感知世界、如何施力。下一章我们将深入探讨机器人的"感官"和"肌肉"——从编码器、IMU到电机驱动的完整信号链。下一章见。</p>
 
+        <h2>6.7 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Yoshikawa, T. (1985). <em>Manipulability of Robotic Mechanisms</em>. The International Journal of Robotics Research, 4(2). <a href="https://doi.org/10.1177/027836498500400201">doi:10.1177/027836498500400201</a>。本章 6.4 节可操作性指数 <math class="math-inline" aria-label="可操作性指数 w"><mi>w</mi></math> 的原始定义即出自此文。</li>
+            <li>Merlet, J.-P. (2006). <em>Parallel Robots</em> (2nd ed.). Springer。并联机构自由度与 Stewart 平台分析（6.3–6.4 节）的经典参考。</li>
+            <li>Craig, J. J. (2005). <em>Introduction to Robotics: Mechanics and Control</em> (3rd ed.). Pearson。自由度、工作空间与奇异位形的基础教材（6.1、6.5 节）。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="05.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="07.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
