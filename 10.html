@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第10章 微分运动学与雅可比</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第10章 微分运动学与雅可比</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第10章 微分运动学与雅可比</h1>
 
         <p>大家好，我是你们的讲师。如果说FK是"机器人的位置"，IK是"位置的反向映射"，那么今天我们要讲的微分运动学（Differential Kinematics）就是"机器人的速度"。而雅可比矩阵（Jacobian Matrix）正是连接关节速度与末端速度的桥梁。</p>
 
         <p>你可能已经在第9章接触过雅可比伪逆——那是数值IK的核心。但雅可比的意义远不止于IK求解。它告诉你：<strong>哪个关节对末端运动贡献最大？在什么构型下机器人会失去自由度？末端能承受多大的力？</strong>可以说，理解了雅可比，你就理解了机器人在"动"和"受力"两个维度上的全部行为。</p>
 
-        <h3>10.1 雅可比矩阵的物理含义</h3>
+        <h2>10.1 雅可比矩阵的物理含义</h2>
 
         <p>雅可比矩阵 <code>J(q) ∈ ℝ^(6×n)</code> 定义了一种速度映射关系：</p>
 
@@ -87,7 +102,7 @@ print("雅可比矩阵形状:", J.shape)  # (6, nq)
 print("线速度部分:\n", J[:3, :])
 print("角速度部分:\n", J[3:, :])</code></pre>
 
-        <h3>10.2 几何雅可比 vs 分析雅可比</h3>
+        <h2>10.2 几何雅可比 vs 分析雅可比</h2>
 
         <p>需要注意的是，雅可比有两种不同的定义方式：</p>
 
@@ -106,7 +121,7 @@ print("角速度部分:\n", J[3:, :])</code></pre>
             <p><strong>何时用哪种？</strong>如果你做的是控制（输出关节力矩），用几何雅可比，因为物理量是矢量。如果你做的是规划（输出末端轨迹），用分析雅可比通常更方便，因为姿态参数的时间导数更直观。不过大多数现代框架（Pinocchio、Kindr）都默认使用几何雅可比——减少姿态参数化带来的奇异性。</p>
         </div>
 
-        <h3>10.3 奇异性分析</h3>
+        <h2>10.3 奇异性分析</h2>
 
         <p>雅可比矩阵的秩直接反映了机器人在当前构型下的运动能力。当雅可比不满秩（<code>rank(J) &lt; 6</code>）时，机器人处于奇异位形，此时在某些方向上失去运动能力。</p>
 
@@ -171,7 +186,34 @@ for test_name, q_test in [("中立位姿", np.zeros(6)),
             <p><strong>避坑指南</strong>：我在调试一个焊接机器人时，发现在某个特定焊接路径上机器人总是"卡顿"一下，然后继续运动。用SVD分析后发现，在那个点雅可比的最小奇异值降到了0.02（正常值约2.0），条件数突破了1000。根本原因是焊枪姿态要求导致第5轴几乎为零，进入了腕部奇异。解决方案很简单——在规划阶段绕过奇异区域，而不是指望控制器在奇异点附近"硬撑"。记住：<strong>奇异位形不是控制能解决的问题，它是路径规划阶段就应该回避的</strong>。</p>
         </div>
 
-        <h3>10.4 可操作度</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig10a-title fig10a-desc" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig10a-title">雅可比把关节速度单位球映射为末端速度椭球</title>
+                <desc id="fig10a-desc">左侧是关节速度空间中范数为 1 的单位圆，经雅可比矩阵映射后，在右侧变成末端速度空间中的一个椭圆；椭圆长轴与短轴分别对应对大与最小的奇异值。</desc>
+                <rect width="640" height="260" rx="18" fill="#f8fbf7"/>
+                <g stroke="#cbd5e1" stroke-width="1.5">
+                    <line x1="130" y1="60" x2="130" y2="200"/><line x1="60" y1="130" x2="200" y2="130"/>
+                    <line x1="470" y1="60" x2="470" y2="200"/><line x1="360" y1="130" x2="580" y2="130"/>
+                </g>
+                <circle cx="130" cy="130" r="64" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/>
+                <g transform="rotate(-18 470 130)"><ellipse cx="470" cy="130" rx="112" ry="42" fill="#ffe3c2" stroke="#c2410c" stroke-width="3"/></g>
+                <g font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="130" y="228" font-size="13" fill="#1d4ed8" text-anchor="middle">关节速度空间 |q̇|=1</text>
+                    <text x="470" y="228" font-size="13" fill="#c2410c" text-anchor="middle">末端速度空间</text>
+                    <text x="300" y="120" font-size="15" fill="#334155" text-anchor="middle">ν = J(q)·q̇</text>
+                </g>
+                <defs>
+                    <marker id="fig10a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <line x1="215" y1="140" x2="345" y2="140" stroke="#334155" stroke-width="3" marker-end="url(#fig10a-arrow)"/>
+                <g stroke="#c2410c" stroke-width="2"><line x1="470" y1="130" x2="576" y2="93"/><line x1="470" y1="130" x2="498" y2="150"/></g>
+                <text x="560" y="86" font-size="12" fill="#c2410c">σ₁（易动）</text>
+                <text x="500" y="168" font-size="12" fill="#c2410c">σ₂（难动）</text>
+            </svg>
+            <figcaption>雅可比的几何意义：把关节速度空间的单位球（每关节速度归一）映射到末端速度空间，得到一个椭球。长轴长 <math class="math-inline" aria-label="最大奇异值 sigma 1"><msub><mi>σ</mi><mn>1</mn></msub></math> 指末端“最容易动”的方向，短轴 <math class="math-inline" aria-label="最小奇异值 sigma m"><msub><mi>σ</mi><mi>m</mi></msub></math> 指“最难动”的方向。当短轴退化为零（椭球坍缩）时即到达奇异位形——可操作度 <math class="math-inline" aria-label="可操作度 w"><mi>w</mi></math> 等于各奇异值之积，也降为零。</figcaption>
+        </figure>
+
+        <h2>10.4 可操作度</h2>
 
         <p>Yoshikawa在1985年提出了可操作度（Manipulability）的概念，用一个标量衡量机器人在当前构型下的"运动灵活性"：</p>
 
@@ -185,7 +227,7 @@ for test_name, q_test in [("中立位姿", np.zeros(6)),
             <p><strong>直觉理解</strong>：想象你的手臂完全伸直去推一堵墙——你能输出很大的力（力椭球在这个方向上很长），但你的手在这个方向上几乎不能移动（速度椭球在这个方向上很短）。反之，当你的肘部弯曲90°时，手可以快速移动（速度椭球大），但推力很小。这个对偶性在设计机器人操作任务时至关重要——重载搬运需要"力优势"构型，精密装配需要"速度优势"构型。</p>
         </div>
 
-        <h3>10.5 力域中的雅可比</h3>
+        <h2>10.5 力域中的雅可比</h2>
 
         <p>雅可比不仅在速度域中起作用，在力域中同样关键。利用虚功原理（Virtual Work Principle），我们可以建立关节力矩 <code>τ</code> 与末端力 <code>F</code> 之间的关系：</p>
 
@@ -212,12 +254,20 @@ print("重力补偿关节力矩:", tau_gravity)</code></pre>
 
         <p>运动学描述了运动而不问力——现在加入质量和惯性，就进入了动力学。下一章：<strong>刚体动力学</strong>。</p>
 
+        <h2>10.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Yoshikawa, T. (1985). <em>Manipulability of Robotic Mechanisms</em>. The International Journal of Robotics Research, 4(2)。本章 10.4 节可操作度与速度-力对偶的原始文献。 <a href="https://doi.org/10.1177/027836498500400201">doi:10.1177/027836498500400201</a></li>
+            <li>Siciliano, B., et al. (2010). <em>Robotics: Modelling, Planning and Control</em>. Springer。几何雅可比、奇异值与力域雅可比（10.1–10.3、10.5 节）的教科书推导。 <a href="https://doi.org/10.1007/978-1-84628-642-1">doi:10.1007/978-1-84628-642-1</a></li>
+        </ul>
+
         <div class="footer-nav">
             <a href="09.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="11.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
