@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第8章 正向运动学</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +55,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第8章 正向运动学</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第8章 正向运动学</h1>
 
         <p>大家好，我是你们的讲师。今天我们要进入机器人学中最重要、也最"踏实"的一个话题——正向运动学（Forward Kinematics, FK）。如果你问一个干了二十年的机器人工程师"你最核心的技能是什么"，他大概率会回答："正向运动学，是根。"</p>
 
         <p>为什么FK如此重要？因为机器人要控制自己的末端执行器到达某个位置，首先必须知道一个基本映射关系：<strong>给定一组关节角度，末端执行器在哪儿？</strong>这个从关节空间（Joint Space）到任务空间（Task Space）的映射，就是FK。不管是后面要学的逆向运动学、微分运动学、动力学还是轨迹规划，没有一个能离开FK这个地基。可以毫不夸张地说：FK的精度，决定了整个机器人算法栈的上限。</p>
 
-        <h3>8.1 FK的定义与意义</h3>
+        <h2>8.1 FK的定义与意义</h2>
 
         <p>我们先给FK一个精确但直观的定义。设机器人的关节角度为向量 <code>q = [q₁, q₂, ..., qₙ]ᵀ</code>，末端执行器的位姿（位置+姿态）为 <code>T ∈ SE(3)</code>。FK就是这样一个函数：</p>
 
@@ -70,7 +85,7 @@
             <p><strong>核心认知</strong>：FK的输入是"机器人本身的状态"（关节角度），输出是"末端在空间中的位置"。它不涉及力、不涉及速度、不涉及控制——它就是一个纯粹的几何学映射。理解这一点，你就不会在后续学习IK和动力学时混淆。</p>
         </div>
 
-        <h3>8.2 DH参数法实战</h3>
+        <h2>8.2 DH参数法实战</h2>
 
         <p>标准的FK建模方法就是Denavit-Hartenberg（DH）参数法。它用四个参数来描述相邻两个连杆坐标系之间的变换：<strong>α</strong>（连杆扭转角）、<strong>a</strong>（连杆长度）、<strong>d</strong>（连杆偏距）、<strong>θ</strong>（关节角）。这四个参数可以唯一确定一个4×4齐次变换矩阵。</p>
 
@@ -144,7 +159,38 @@
             <p><strong>实战技巧</strong>：在分配DH参数时，我强烈建议你在纸上画清楚每个关节的坐标系——先画出Z轴，再画X轴（公垂线方向），最后确定Y轴。很多经验丰富的工程师也是这么做的。永远不要只在脑子里想坐标系，画出来才能发现问题。</p>
         </div>
 
-        <h3>8.3 变换矩阵递推</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig08a-title fig08a-desc" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig08a-title">两连杆平面机械臂的关节与连杆参数</title>
+                <desc id="fig08a-desc">基座关节 A 通过长为 a1 的杆连到关节 B，再由长为 a2 的杆连到末端 E；θ1 是杆 a1 与水平基座轴 X0 的夹角，θ2 是两杆之间的夹角。</desc>
+                <rect width="640" height="260" rx="18" fill="#f8fbf7"/>
+                <line x1="90" y1="210" x2="180" y2="210" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 5"/>
+                <text x="186" y="214" font-size="13" fill="#64748b" font-family="'PingFang SC',system-ui,sans-serif">X₀（基座轴）</text>
+                <rect x="62" y="208" width="56" height="10" rx="3" fill="#cbd5e1" stroke="#94a3b8"/>
+                <g stroke="#0e7490" stroke-width="12" stroke-linecap="round">
+                    <line x1="90" y1="210" x2="165" y2="80"/>
+                    <line x1="165" y1="80" x2="287" y2="36"/>
+                </g>
+                <g fill="#ea580c" stroke="#fff" stroke-width="3">
+                    <circle cx="90" cy="210" r="9"/><circle cx="165" cy="80" r="9"/>
+                </g>
+                <rect x="280" y="28" width="16" height="16" rx="3" fill="#1d4ed8" stroke="#0b2a72" stroke-width="2"/>
+                <g font-family="'PingFang SC',system-ui,sans-serif">
+                    <text x="300" y="24" font-size="13" fill="#1d4ed8">末端 E</text>
+                    <text x="137" y="150" font-size="14" fill="#0e7490">a₁</text>
+                    <text x="238" y="66" font-size="14" fill="#0e7490">a₂</text>
+                    <text x="70" y="242" font-size="14" fill="#c2410c">关节 A</text>
+                    <text x="150" y="66" font-size="14" fill="#c2410c">关节 B</text>
+                    <text x="124" y="196" font-size="13" fill="#b45309">θ₁</text>
+                    <text x="150" y="104" font-size="13" fill="#b45309">θ₂</text>
+                    <path d="M138 210 A48 48 0 0 1 114 168" fill="none" stroke="#b45309" stroke-width="2"/>
+                    <path d="M148 104 A42 42 0 0 1 168 118" fill="none" stroke="#b45309" stroke-width="2"/>
+                </g>
+            </svg>
+            <figcaption>两连杆平面臂的 DH 几何。关节 A 是基座旋转关节，θ₁ 度量杆 a₁ 相对基座轴 X₀ 的转角；θ₂ 度量杆 a₂ 相对杆 a₁ 的转角。若每条连杆的局部变换为 <math class="math-inline" aria-label="T i 等于绕 Z 转 theta、沿 Z 平移 d、沿 X 平移 a、绕 X 转 alpha"><msub><mi>T</mi><mi>i</mi></msub></math>，则末端位姿就是所有局部变换的连乘。此图为教学示意，非按真实尺寸绘制。</figcaption>
+        </figure>
+
+        <h2>8.3 变换矩阵递推</h2>
 
         <p>有了DH参数，接下来就是通过齐次变换矩阵的链式乘法来递推末端位姿。每个相邻连杆的变换矩阵为：</p>
 
@@ -201,7 +247,7 @@ print("末端旋转矩阵:\n", T[:3, :3])</code></pre>
             <p><strong>避坑指南</strong>：一个非常常见的错误是变换顺序搞反了。如果你用的是Modified DH（有些教科书遵循Craig的约定），变换矩阵的形式和乘法顺序与Standard DH不同。你可以在ROS的 <code>kdl_parser</code> 或Pinocchio中验证。我个人的建议是：<strong>始终使用你所用工具库的标准约定</strong>，URDF用的是Modified DH的变体，而大多数教科书讲的是Standard DH。混用会导致完全错误的结果。</p>
         </div>
 
-        <h3>8.4 Pinocchio库实战</h3>
+        <h2>8.4 Pinocchio库实战</h2>
 
         <p>手动实现DH参数法对理解原理非常有帮助，但在现代机器人开发中，我们通常使用成熟的运动学库。Pinocchio是法国INRIA开发的开源机器人动力学库，它从URDF文件自动解析运动学链并提供FK计算功能。在机器人社区中，Pinocchio已经成为事实标准之一。</p>
 
@@ -236,7 +282,7 @@ print("末端旋转:", ee_pose.rotation)</code></pre>
             <p><strong>最佳实践</strong>：在调试FK时，始终将Pinocchio的输出与手动DH计算的输出对比。如果两者不一致，大概率是你的DH参数定义有误，或者Pinocchio的frame索引搞错了。利用 <code>model.frames</code> 打印所有frame名称，确保你选中了正确的末端frame。</p>
         </div>
 
-        <h3>8.5 URDF建模入门</h3>
+        <h2>8.5 URDF建模入门</h2>
 
         <p>URDF（Unified Robot Description Format）是ROS生态下最通用的机器人描述格式。一个URDF文件通过XML描述机器人的连杆（link）和关节（joint）之间的树状拓扑关系。每个link可以包含视觉模型（visual）、碰撞模型（collision）和惯性参数（inertial）。</p>
 
@@ -280,12 +326,21 @@ print("末端旋转:", ee_pose.rotation)</code></pre>
 
         <p>知道了如何从关节角度算出末端位姿，反过来呢？给定一个期望的末端位姿，我们如何算出对应的关节角度？这就是我们的下一章——<strong>逆向运动学</strong>，运动学中最具挑战性也最有趣的问题。</p>
 
+        <h2>8.6 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Denavit, J., & Hartenberg, R. S. (1955). A kinematic notation for lower-pair mechanisms based on matrices. <em>Journal of Applied Mechanics</em>, 22, 215–221。本章 8.2 节 DH 参数法的原始文献。</li>
+            <li>Siciliano, B., Sciavicco, L., Villani, L., & Oriolo, G. (2010). <em>Robotics: Modelling, Planning and Control</em>. Springer。齐次变换、DH 参数与正运动学递推的教科书推导（8.1–8.3 节）。 <a href="https://doi.org/10.1007/978-1-84628-642-1">doi:10.1007/978-1-84628-642-1</a></li>
+            <li>URDF 机器人描述格式文档（8.5 节）。 <a href="http://wiki.ros.org/urdf">wiki.ros.org/urdf</a>。本章中出现的 UR5 / KUKA KR10 具体几何数值为公开资料的举例，属于教学示意。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="07.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="09.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
