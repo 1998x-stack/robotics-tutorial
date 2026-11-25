@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第7章 传感器与执行器</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (min-width: 769px) { table { min-width: 0; } }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,25 +56,63 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第7章 传感器与执行器</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第7章 传感器与执行器</h1>
 
         <p>大家好，我是你们的讲师。到上一章为止，我们一直在"纸上谈兵"——讨论数学、运动学、机构学，这些都是理论工具。而从这一章开始，我们开始接触机器人系统中真正的"物理层"。传感器是机器人的感官——它让机器人知道自己在哪、周围有什么、手上拿了什么东西。执行器是机器人的肌肉——它让机器人能够真正地与环境交互、做功、移动。</p>
 
         <p>如果你去翻一台2026年的协作机器人的BOM表（物料清单），你会发现传感器和执行器的成本占到了整台机器人成本的60%以上。相比之下，控制器的成本在持续下降（一个树莓派级别的单板计算机已经可以跑通全套控制算法），但物理器件的精度和可靠性却是用实实在在的硬件成本堆出来的。做一个好的机器人工程师，不懂硬件是不行的。</p>
 
-        <h3>7.1 内部传感器</h3>
+        <figure>
+            <svg role="img" aria-labelledby="fig07a-title fig07a-desc" viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig07a-title">机器人的感知—决策—执行闭环信号链</title>
+                <desc id="fig07a-desc">环境被传感器测量，传感器数据送入控制器做状态估计与控制律计算，控制器输出指令给执行器，执行器对环墟施加运动或力矩，形成闭环。</desc>
+                <rect width="640" height="220" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig07a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                        <path d="M0 0 L10 5 L0 10 z" fill="#334155"/>
+                    </marker>
+                </defs>
+                <g stroke="#334155" stroke-width="3" fill="none" marker-end="url(#fig07a-arrow)">
+                    <path d="M135 92 H172"/><path d="M295 92 H332"/><path d="M455 92 H492"/>
+                    <path d="M555 124 V170 H75 V128"/>
+                </g>
+                <g font-family="'PingFang SC',system-ui,sans-serif">
+                    <rect x="15" y="60" width="120" height="64" rx="12" fill="#ffe3c2" stroke="#c2410c" stroke-width="3"/>
+                    <rect x="175" y="60" width="120" height="64" rx="12" fill="#d6f1eb" stroke="#0e7490" stroke-width="3"/>
+                    <rect x="335" y="60" width="120" height="64" rx="12" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/>
+                    <rect x="495" y="60" width="120" height="64" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="3"/>
+                    <g fill="#0f172a" font-size="15" text-anchor="middle">
+                        <text x="75" y="88">环境/工件</text><text x="235" y="88">传感器</text>
+                        <text x="395" y="88">控制器</text><text x="555" y="88">执行器</text>
+                    </g>
+                    <g fill="#475569" font-size="11" text-anchor="middle">
+                        <text x="235" y="108">编码器·IMU·相机</text>
+                        <text x="395" y="108">状态估计+控制律</text>
+                        <text x="555" y="108">电机+减速器</text>
+                    </g>
+                    <text x="153" y="84" font-size="12" fill="#475569">测量</text>
+                    <text x="313" y="84" font-size="12" fill="#475569">数据</text>
+                    <text x="473" y="84" font-size="12" fill="#475569">指令</text>
+                    <text x="315" y="190" font-size="12" fill="#475569">力矩/运动（物理交互）</text>
+                </g>
+            </svg>
+            <figcaption>机器人的“感知—决策—执行”闭环。传感器把环境的物理量变成信号，控制器据此估计状态并计算控制量，执行器再把控制量变成真实的力矩或运动作用于环境。任何一个环节的延迟、漂移或噪声，都会沿这个环路传播——这也是 7.6 节选型要同时考虑精度、频率与同步的原因。</figcaption>
+        </figure>
+
+        <h2>7.1 内部传感器</h2>
 
         <p>内部传感器（Proprioceptive Sensors）测量机器人自身状态——关节位置、速度、力矩、本体加速度和角速度。它们是机器人"本体感觉"的来源。</p>
 
         <p><strong>编码器（Encoder）</strong>是最基础也最重要的内部传感器。光学编码器通过光栅盘上的透光/遮光条纹来测量角度位置。增量式编码器输出脉冲数（A/B两相，通过相位差判断方向），需要上电后归零（homing）。绝对式编码器直接输出绝对角度值，上电即知位置，不需要归零过程——这在工业机器人中非常重要，因为大型机械臂的归零过程本身就耗时数分钟且有碰撞风险。2026年，磁性编码器（基于磁阻效应MR或巨磁阻GMR）正在快速普及，虽然分辨率略低于光学编码器（通常17-19位 vs 光学编码器的20-23位），但其抗污能力、抗振动能力和成本都显著优于光学方案。</p>
 
-        <p><strong>IMU（Inertial Measurement Unit）</strong>集成了加速度计和陀螺仪，是现代机器人不可或缺的传感器。加速度计测量三轴线加速度，陀螺仪测量三轴角速度。一个消费级IMU（如BMI088）的价格在10美元左右，零偏稳定性约 \(10^\circ/h\)；而工业级IMU（如ADIS16470）价格在100美元以上，零偏稳定性可达 \(1^\circ/h\) 甚至更好。在足式机器人中，IMU是平衡控制的核心——机器人每毫秒读取一次IMU数据，估算当前的倾斜角度，然后调整关节力矩来维持平衡。没有IMU，双足机器人连站都站不起来。</p>
+        <p><strong>IMU（Inertial Measurement Unit）</strong>集成了加速度计和陀螺仪，是现代机器人不可或缺的传感器。加速度计测量三轴线加速度，陀螺仪测量三轴角速度。一个消费级IMU（如BMI088）的价格在10美元左右，零偏稳定性约 <math class="math-inline" aria-label="每小时零偏稳定性约十度"><mn>10</mn><mo>°</mo><mo>/</mo><mi>h</mi></math>；而工业级IMU（如ADIS16470）价格在100美元以上，零偏稳定性可达 <math class="math-inline" aria-label="每小时零偏稳定性可到一度"><mn>1</mn><mo>°</mo><mo>/</mo><mi>h</mi></math> 甚至更好。在足式机器人中，IMU是平衡控制的核心——机器人每毫秒读取一次IMU数据，估算当前的倾斜角度，然后调整关节力矩来维持平衡。没有IMU，双足机器人连站都站不起来。</p>
 
         <p><strong>关节扭矩传感器</strong>直接测量关节输出力矩，是实现力控（Force Control）的关键。KUKA iiwa和Franka Emika Panda这些协作机器人之所以能够实现精准的力位混合控制，就是因为在每一个关节内置了高精度扭矩传感器（精度通常为额定扭矩的0.5%）。2026年，基于SAW（声表面波）的无线扭矩传感器开始出现在高端机器人中——它不需要电池，通过射频供电，特别适合在对布线和重量有严格限制的人形机器人手指关节中使用。</p>
 
-        <h3>7.2 外部感知传感器</h3>
+        <h2>7.2 外部感知传感器</h2>
 
         <p>外部感知传感器（Exteroceptive Sensors）测量机器人与环境的关系——障碍物在哪、目标物体的形状是什么、地面是否平整。</p>
 
@@ -73,7 +126,7 @@
             <p><strong>趋势洞察</strong>：2026年传感器领域的一个核心趋势是"外感内感一体化"——IMU和相机融合（Visual-Inertial Odometry, VIO）已经成了标配，而最新的发展方向是LiDAR-IMU-相机三模态紧耦合。另一个趋势是"触觉普惠化"——随着触觉传感器成本的下降（从2020年的数千美元降至2026年的数百美元），触觉正在从实验室走向规模化应用。我们会在第21章机器人视觉和第22章机器人学习中继续讨论这个话题。</p>
         </div>
 
-        <h3>7.3 电机与驱动</h3>
+        <h2>7.3 电机与驱动</h2>
 
         <p>执行器是机器人的"肌肉"，而电机是最核心的执行器。机器人电机的选型直接决定了机器人的性能上限——负载能力、运动速度、精度和能耗。</p>
 
@@ -87,7 +140,7 @@
 
         <p>2026年执行器领域最受关注的技术是<strong>直驱电机（Direct Drive Motor）</strong>和<strong>准直驱执行器（Quasi-Direct Drive, QDD）</strong>。传统机器人在电机和关节之间使用高减速比减速器（50:1到200:1），这会引入摩擦和背隙。QDD使用低减速比（6:1到10:1），让电机直接驱动关节——牺牲了部分峰值力矩，但获得了极好的反向驱动性（backdrivability），即外力可以轻松推动关节。这对人形机器人和协作机器人至关重要——如果电机被撞到，低阻抗的QDD可以避免伤害人类和损坏自己。宇树科技的H2 Plus人形机器人就在其腿部关节中使用了QDD方案。</p>
 
-        <h3>7.4 传动机构</h3>
+        <h2>7.4 传动机构</h2>
 
         <p>电机输出的高速低扭矩运动需要通过传动机构转化为机器人关节所需的低速高扭矩运动。传动机构的设计直接影响机器人的精度、刚度、寿命和成本。</p>
 
@@ -103,7 +156,7 @@
             <p><strong>知识点</strong>：有一个重要概念叫做"传动比的选择原则"——在满足力矩需求的前提下，尽量选择<strong>最小的减速比</strong>。为什么？因为减速比越高，反射到电机端的负载惯量越小，系统的响应速度越快，但同时也意味着外力更难反驱（backdrivability差）。对于协作机器人，选择适中的减速比是一个权衡——力矩够用即可，不要过度放大。</p>
         </div>
 
-        <h3>7.5 传感器类型、精度与应用场景对比</h3>
+        <h2>7.5 传感器类型、精度与应用场景对比</h2>
 
         <table>
             <thead>
@@ -189,7 +242,7 @@
             </tbody>
         </table>
 
-        <h3>7.6 传感器选型实战</h3>
+        <h2>7.6 传感器选型实战</h2>
 
         <p>最后，分享一个我亲身经历的传感器选型教训。2019年，我在开发一台精密装配机器人，任务是将直径0.5mm的微小型轴承压入轴孔中，装配公差仅±5微米。我们选用了电机自带的17位增量式编码器（分辨率约0.003°），理论上结合减速比计算出的末端精度可以达到3微米——"看起来够用"。</p>
 
@@ -232,12 +285,21 @@
 
         <p>好的，传感器和执行器的基础知识就讲到这里。我们从内部传感器（编码器、IMU、扭矩传感器）、外部传感器（相机、LiDAR、触觉）、电机（BLDC、步进、伺服）、传动机构（谐波、RV、行星齿轮）一路讲下来，最后分享了选型实战经验和检查清单。硬件准备就绪，Part 2我们将进入机器人学的核心引擎——<strong>运动学</strong>。下一章我们从最基础的开始：正向运动学。下一章见。</p>
 
+        <h2>7.7 延伸阅读与出处</h2>
+
+        <ul>
+            <li>Siciliano, B., & Khatib, O. (Eds.) (2016). <em>Springer Handbook of Robotics</em> (2nd ed.). Springer。传感器与执行器系统综述（7.1–7.4 节）的总入口参考。 <a href="https://doi.org/10.1007/978-3-319-32552-1">doi:10.1007/978-3-319-32552-1</a></li>
+            <li>Gallego, G., et al. (2022). <em>Event-based Vision: A Survey</em>. IEEE TPAMI, 44(1). 事件相机的原理与机器人应用（7.2 节）。 <a href="https://doi.org/10.1109/TPAMI.2020.3008413">doi:10.1109/TPAMI.2020.3008413</a></li>
+            <li>Siciliano, B., et al. (2010). <em>Robotics: Modelling, Planning and Control</em>. Springer。本章关于关节伺服的电流环/速度环/位置环与传动比的工程描述（7.3–7.4 节）。本节中的具体型号、价格与年份为 2026 年公开资料的举例，属于教学示意。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="06.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="08.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
