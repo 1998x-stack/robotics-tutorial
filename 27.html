@@ -5,11 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第27章 具身智能与VLA大模型</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .eq-scroll { overflow-x: auto; padding: .4rem 0; }
+        .eq-scroll math { font-size: 1.15rem; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +57,16 @@
             <li><a href="27.html" class="active">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第27章 具身智能与VLA大模型</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第27章 具身智能与VLA大模型</h1>
 
         <p>大家好，我是你们的讲师。上一章我们讨论了人形机器人的"身体"——从ZMP平衡到WBC控制，从四足步态到全身协调。但一个能走能跳的机器人只是一个"健身达人"——它还需要"大脑"来理解世界、理解任务。这就是具身智能（Embodied Intelligence）和VLA大模型的使命。</p>
 
         <p>2026年被认为是"具身智能的ChatGPT时刻"。我不夸张地说，过去两年间机器人领域的最大变革不是硬件突破——硬件在稳步迭代——而是AI模型范式的根本性转变。2023年Google发布了RT-2，第一次证明了一个模型可以同时理解视觉输入、自然语言指令并直接输出机器人关节动作。2024年OpenVLA将这一能力开源。2025年Physical Intelligence的π₀模型用Flow Matching彻底改变了动作生成的精度。2026年SmolVLA在450M参数规模上实现了令人惊讶的灵巧操作能力。这一年一个样，三年大变样——我们正在见证机器人从"被编程"到"被教导"再到"自主学习"的跃迁。</p>
 
-        <h3>从规则编程到数据驱动</h3>
+        <h2>从规则编程到数据驱动</h2>
 
         <p>传统的机器人开发管线是这样一个模式：工程师写下感知模块的代码（特征提取、物体检测），然后是规划模块（路径搜索、轨迹优化），最后是控制模块（PID、逆动力学）。每个模块独立设计、独立调试、独立维护。这个管线在过去四十年里非常成功——它让机器人可靠地完成了从汽车焊接芯片封装到仓储分拣的无数任务。但它有一个根本性的局限：<strong>每个模块都需要领域专家手工设计</strong>，而且面对新的场景、新的物体或新的任务时，手工调整的工作量几乎是线性增长的。</p>
 
@@ -61,15 +78,65 @@
             <p><strong>关键洞察</strong>：我2019年在斯坦福参加一次机器人研讨会时，一位教授说："如果2020年的AI方法在2025年还没被淘汰，那你的研究可能不够前沿。"当时我觉得这话过于激进。但现在回头看，2023年的RT-1在2024年就已经被RT-2取代，2024年的Octo模型在2025年就被π₀超越，2025年的Flow Matching方案在2026年已经遍地开花。在这个领域，保持学习的速度就是保持竞争力的唯一方式。</p>
         </div>
 
-        <h3>VLA模型架构</h3>
+        <h2>VLA模型架构</h2>
 
         <p>VLA模型的核心架构可以分解为三个模块：<strong>感知编码器（Perception Encoder）→ 语言模型（Language Model）→ 动作解码器（Action Decoder）</strong>。</p>
+
+        <figure>
+            <svg role="img" aria-labelledby="fig27a-title fig27a-desc" viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig27a-title">VLA 模型的推理流水线</title>
+                <desc id="fig27a-desc">相机图像与自然语言指令分别编码后跨模态融合，再经动作解码器生成末端位姿与夹爪动作序列。</desc>
+                <rect width="660" height="250" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig27a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <g font-family="'PingFang SC',system-ui,sans-serif" stroke-width="2">
+                    <rect x="20" y="50" width="120" height="54" rx="12" fill="#dbeafe" stroke="#1d4ed8"/>
+                    <text x="80" y="82" font-size="13" fill="#0f172a" text-anchor="middle">相机图像</text>
+                    <rect x="20" y="146" width="120" height="54" rx="12" fill="#d6f1eb" stroke="#0e7490"/>
+                    <text x="80" y="178" font-size="13" fill="#0f172a" text-anchor="middle">语言指令</text>
+                    <rect x="182" y="86" width="140" height="90" rx="14" fill="#dcfce7" stroke="#15803d"/>
+                    <text x="252" y="118" font-size="13" fill="#0f172a" text-anchor="middle">感知编码器 +</text>
+                    <text x="252" y="138" font-size="13" fill="#0f172a" text-anchor="middle">语言模型</text>
+                    <text x="252" y="158" font-size="11" fill="#475569" text-anchor="middle">跨模态融合</text>
+                    <rect x="362" y="86" width="130" height="90" rx="14" fill="#ffe3c2" stroke="#c2410c"/>
+                    <text x="427" y="118" font-size="13" fill="#0f172a" text-anchor="middle">动作解码器</text>
+                    <text x="427" y="140" font-size="11" fill="#475569" text-anchor="middle">Flow Matching</text>
+                    <rect x="532" y="86" width="108" height="90" rx="14" fill="#f3e8ff" stroke="#7e22ce"/>
+                    <text x="586" y="116" font-size="13" fill="#0f172a" text-anchor="middle">动作序列</text>
+                    <text x="586" y="138" font-size="11" fill="#475569" text-anchor="middle">x,y,z,RPY</text>
+                    <text x="586" y="156" font-size="11" fill="#475569" text-anchor="middle">+ 夹爪</text>
+                </g>
+                <g stroke="#334155" stroke-width="2.5" fill="none" marker-end="url(#fig27a-arrow)">
+                    <line x1="140" y1="82" x2="178" y2="112"/>
+                    <line x1="140" y1="168" x2="178" y2="148"/>
+                    <line x1="322" y1="131" x2="358" y2="131"/>
+                    <line x1="492" y1="131" x2="528" y2="131"/>
+                </g>
+            </svg>
+            <figcaption>VLA 模型的推理流水线：图像与语言分别编码后在统一语义空间融合，再由动作解码器直接输出机器人动作。动作空间因任务而异（机械臂为 6D 位姿+夹爪，全身操作为关节角/力矩）。此图为教学示意。</figcaption>
+        </figure>
 
         <p><strong>感知编码器</strong>接收相机图像（或多视角图像、深度图、点云），将其编码为密集的视觉token序列。常用的视觉backbone包括：SigLIP（Google，基于对比学习的视觉编码器）、DINOv2（Meta，自监督视觉特征）、以及最新的3D Voxel Encoder（直接处理体素数据）。视觉编码器的输出通常是一组空间结构化的特征图——它保留了物体的位置、形状和姿态信息。</p>
 
         <p><strong>语言模型</strong>接收用户用自然语言描述的任务指令（如"把桌上的螺丝刀拿起来放到工具箱里"），通过预训练的LLM将语言理解与视觉特征进行跨模态对齐。2026年的主流VLA模型使用视觉-语言联合编码（如LLaVA架构中使用的Q-Former或Cross-Attention机制），让视觉特征和文本嵌入在统一的语义空间中交互作用。语言模型的任务不仅是"理解指令"，还包括生成长时域的任务规划——比如把"泡一杯咖啡"分解为"取杯子→放咖啡粉→按按钮"的子任务序列。</p>
 
         <p><strong>动作解码器</strong>是VLA模型中最具机器人特色的部分。它将语言模型输出的隐层表征映射为具体的机器人动作指令。动作空间的定义因任务而异：对于机械臂操作，通常是末端执行器的6D位姿（位置+姿态）+ 夹爪开合度；对于移动操作，还要加上基座的线速度和角速度；对于全身操作，则需要输出所有关节的角度或力矩。π₀模型的一个重要创新是使用<strong>Flow Matching</strong>替代传统的回归或扩散解码器——动作不是从分布中采样的，而是沿着一个连续流场从噪声平滑变形到目标动作，这使得生成的动作兼具多样性和精准性。</p>
+
+        <p>Flow Matching 的核心是定义一条从噪声到目标动作的连续路径。设噪声为 <span class="math-inline">x<sub>0</sub></span>、目标动作为 <span class="math-inline">a</span>，沿插值系数 <span class="math-inline">t∈[0,1]</span> 构造：</p>
+        <div class="eq-scroll" data-math-scroll="true" role="region" tabindex="0" aria-label="流匹配插值公式，可横向滚动">
+            <math display="block" aria-label="流匹配：路径 x_t 等于 1 减 t 乘噪声 x_0 加 t 乘目标动作 a，其时间导数为 a 减 x_0">
+                <mrow>
+                    <msub><mi>x</mi><mi>t</mi></msub><mo>=</mo>
+                    <mo>(</mo><mn>1</mn><mo>−</mo><mi>t</mi><mo>)</mo><msub><mi>x</mi><mn>0</mn></msub>
+                    <mo>+</mo><mi>t</mi><mi>a</mi>
+                    <mo>,</mo>
+                    <mfrac><mrow><mi>d</mi><msub><mi>x</mi><mi>t</mi></msub></mrow><mrow><mi>d</mi><mi>t</mi></mrow></mfrac>
+                    <mo>=</mo><mi>a</mi><mo>−</mo><msub><mi>x</mi><mn>0</mn></msub>
+                </mrow>
+            </math>
+        </div>
+        <p>路径的“速度” <span class="math-inline">a − x<sub>0</sub></span> 是常量，模型只需学习一个速度场 <span class="math-inline">v<sub>θ</sub></span> 去逼近它，因而生成过程比多步去噪的扩散模型更稳定、更省推理步数。这就是 π₀ 等模型采用 Flow Matching 而非纯扩散解码的原因（公式为方法原理示意）。</p>
 
         <p>下面是VLA模型推理过程的简化伪代码：</p>
 
@@ -118,7 +185,7 @@ class VLAInference:
             <p><strong>实践建议</strong>：如果你第一次接触VLA，不要试图从头训练一个模型——那需要数千张GPU、数百万条轨迹数据。正确的做法是<strong>使用预训练模型+微调</strong>。从HuggingFace下载OpenVLA或SmolVLA的权重，用你自己的机器人收集几百条轨迹数据做LoRA微调。一天之内就能在真实硬件上看到效果。</p>
         </div>
 
-        <h3>关键模型盘点</h3>
+        <h2>关键模型盘点</h2>
 
         <p>从2023年RT-2发布到现在，VLA模型的发展可以用"日新月异"来形容。我把2026年最值得关注的几个模型整理成了一张全景表：</p>
 
@@ -179,6 +246,8 @@ class VLAInference:
             </tr>
         </table>
 
+        <p><strong>说明</strong>：上表中的参数量、发布时间与性能描述整理自各模型的公开发布与论文，属教学示意，并随版本快速变化；使用时请以各模型官方文档为准。</p>
+
         <p>让我特别解读几个重要的模型：</p>
 
         <p><strong>π₀（Physical Intelligence，2025）</strong>是VLA领域的一个里程碑。它抛弃了传统的"先检测物体再规划动作"的两阶段范式，直接用Flow Matching生成平滑的末端轨迹。Flow Matching相比扩散模型的优势在于：它定义了一个确定性的概率路径，从噪声到动作的映射是连续的、可微的，这使得动作生成在时间和空间上都更加稳定。π₀在多种操作任务上（开瓶、叠衣服、使用工具）的成功率超过了之前所有开源模型。</p>
@@ -191,7 +260,7 @@ class VLAInference:
             <p><strong>踩坑提醒</strong>：我在部署OpenVLA时遇到过一个经典问题。模型在仿真中可以准确地完成"拿起红色方块"的任务，但在真实场景中，同样的指令会导致夹爪直接穿过物体抓空。排查发现：仿真中的相机标定是完美的，而真实相机的内参和外参都有微小误差——视觉编码器对这些误差极其敏感。解决方案是在微调数据中加入随机扰动（平移±2mm、旋转±1°），让模型学会对微小标定误差保持鲁棒。这个技巧叫做<strong>视觉域随机化（Visual Domain Randomization）</strong>，对所有VLA模型都有效。</p>
         </div>
 
-        <h3>训练数据与生态</h3>
+        <h2>训练数据与生态</h2>
 
         <p>VLA模型的数据基础设施建设在过去两年取得了巨大进展。核心数据集的规模和质量直接决定了模型的泛化能力。</p>
 
@@ -254,7 +323,7 @@ class VLAInference:
             </tr>
         </table>
 
-        <h3>2026前沿与挑战</h3>
+        <h2>2026前沿与挑战</h2>
 
         <p>2026年的VLA研究正在向更深层次的智能方向推进。这里有几个我特别关注的前沿方向：</p>
 
@@ -268,7 +337,7 @@ class VLAInference:
 
         <p>当然，VLA模型远未成熟。最大的三个挑战是：<strong>长时域推理</strong>（当前模型在任务步数超过10步后的成功率急剧下降）、<strong>物理常识</strong>（模型不理解"杯子放在桌子边缘会掉下来"这样的物理直观）、<strong>安全保障</strong>（端到端模型可能在学习数据中不包含的边缘情况下产生不可预测的动作）。这些挑战也是未来3-5年最活跃的研究方向。</p>
 
-        <h3>开源实战：OpenVLA/LeRobot</h3>
+        <h2>开源实战：OpenVLA/LeRobot</h2>
 
         <p>理论讲了很多，现在动手吧。下面我带你走一遍使用OpenVLA和LeRobot在自己的机器人上训练一个"抓取红色方块"任务的全过程。</p>
 
@@ -338,12 +407,23 @@ print("微调完成！现在可以部署到机器人上运行推理了。")</cod
 
         <p>理论讲完，前沿看过——现在是时候把你学到的所有知识整合成一个完整的机器人项目了。从运动学到控制，从感知到规划，从真机部署到AI大模型——第28章，我们的<strong>综合项目实战</strong>，就是这些能力的终极检验。让我们开始动手吧。</p>
 
+        <h2>延伸阅读与出处</h2>
+
+        <ul>
+            <li>Brohan, A., et al. (2023). RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control. <a href="https://arxiv.org/abs/2307.15818">arXiv:2307.15818</a></li>
+            <li>Kim, M. J., et al. (2024). OpenVLA: An Open-Source Vision-Language-Action Model. <a href="https://arxiv.org/abs/2406.09246">arXiv:2406.09246</a></li>
+            <li>Black, K., et al. (2024). π₀: A Vision-Language-Action Flow Model for General Robot Control. <a href="https://arxiv.org/abs/2410.24164">arXiv:2410.24164</a>。本章 Flow Matching 动作解码的来源。</li>
+            <li>O'Neill, A., et al. (2024). Open X-Embodiment: Robotic Learning Datasets and RT-X Models. <a href="https://arxiv.org/abs/2310.08864">arXiv:2310.08864</a></li>
+            <li>HuggingFace LeRobot：统一数据格式与工具链。 <a href="https://huggingface.co/lerobot">huggingface.co/lerobot</a>。本章 OpenVLA/LeRobot 代码为教学示例。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="26.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="28.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
