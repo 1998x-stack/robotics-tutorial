@@ -5,11 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第26章 人形与四足机器人</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .eq-scroll { overflow-x: auto; padding: .4rem 0; }
+        .eq-scroll math { font-size: 1.15rem; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +57,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第26章 人形与四足机器人</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第26章 人形与四足机器人</h1>
 
         <p>大家好，我是你们的讲师。如果我在2023年告诉你，三年后人形机器人将在工厂流水线上与工人并肩作业，你可能会觉得我在说科幻。但2026年的今天，这已经成为现实——波士顿动力Atlas在Hyundai工厂搬运重型冲压件，宇树H2 Plus在NVIDIA Isaac GR00T平台上实现动态平衡，Figure 02在宝马工厂累计处理了超过90,000个零部件。足式机器人，这个曾经被视为"实验室工艺品"的方向，正在以超乎所有人预期的速度冲进产业前线。</p>
 
         <p>为什么是足式？因为人类的世界是为双足和四足设计的——楼梯、门槛、碎石路、狭窄通道、旋转门——轮式机器人遇到这些场景就寸步难行，而足式机器人可以像生物一样自然地通过。这一章，我们将深入足式机器人的核心技术：从双足行走的ZMP理论到四足运动的MPC控制，从全身协调控制到2026年的人形量产时代。这将是我们整个课程中最"前沿"的一章。</p>
 
-        <h3>人形机器人的历史与现状</h3>
+        <h2>人形机器人的历史与现状</h2>
 
         <p>人形机器人（Humanoid Robot）的历史可以追溯到1973年——日本早稻田大学加藤一郎教授团队研制出了WABOT-1，这是世界上第一台全尺寸人形机器人。WABOT-1拥有肢体控制系统、视觉系统和对话系统，能够行走（虽然每步需要45秒）、抓取物体并用日语进行简单对话。以今天的标准看，它笨拙得像一台会走路的冰箱，但它的架构——感知、决策、执行分层设计——影响了此后五十年的所有足式机器人研究。</p>
 
@@ -116,11 +133,13 @@
             </tr>
         </table>
 
+        <p><strong>说明</strong>：上表中的自由度、售价与量产状态整理自各厂商 2026 年公开资料，属教学示意；具体规格与价格请以厂商最新发布为准。</p>
+
         <div class="highlight">
             <p><strong>趋势观察</strong>：留意售价区间。从Atlas的200万美元（仅租赁）到AgiBot G1的1.5万美元，价格在三年内下降了超过两个数量级。大规模量产正在快速拉低硬件成本——这为软件和AI能力的竞争拉开了序幕。正如智能手机时代硬件利润让位于应用生态，人形机器人行业正在经历同样的转变。</p>
         </div>
 
-        <h3>双足行走原理</h3>
+        <h2>双足行走原理</h2>
 
         <p>双足行走（Bipedal Locomotion）是人形机器人最基础也最困难的能力。与四足和轮式不同，双足在站立时是一个"倒立摆"——重心远高于支撑点，天然不稳定。人类婴儿需要大约一年才能学会独立行走，而让人形机器人走得稳、走得自然，研究人员花了整整五十年。</p>
 
@@ -159,15 +178,62 @@ class LIPM:
         com_new = com + com_vel * dt
         return com_new, com_vel_new</code></pre>
 
+        <p>把它写成水平方向的动力学：设 CoM 高度恒为 <span class="math-inline">z<sub>h</sub></span>、重力加速度为 <span class="math-inline">g</span>，CoM 水平位置为 <span class="math-inline">x<sub>com</sub></span>、ZMP 位置为 <span class="math-inline">x<sub>zmp</sub></span>，则 LIPM 的加速度关系为：</p>
+        <div class="eq-scroll" data-math-scroll="true" role="region" tabindex="0" aria-label="LIPM 动力学公式，可横向滚动">
+            <math display="block" aria-label="LIPM 动力学：CoM 水平加速度等于自然频率平方乘以 CoM 与 ZMP 之差，自然频率为根号下 g 除以 z_h">
+                <mrow>
+                    <msub><mover><mi>x</mi><mo>¨</mo></mover><mi>com</mi></msub>
+                    <mo>=</mo>
+                    <msup><mi>ω</mi><mn>2</mn></msup>
+                    <mrow><mo>(</mo><msub><mi>x</mi><mi>com</mi></msub><mo>−</mo><msub><mi>x</mi><mi>zmp</mi></msub><mo>)</mo></mrow>
+                    <mo>,</mo>
+                    <mi>ω</mi><mo>=</mo>
+                    <msqrt><mfrac><mi>g</mi><msub><mi>z</mi><mi>h</mi></msub></mfrac></msqrt>
+                </mrow>
+            </math>
+        </div>
+        <p>这个线性方程说明：当 CoM 恰好位于 ZMP 正上方时加速度为零（可静止）；一旦 CoM 越过 ZMP，加速度与偏差同号，系统会“发散”——这正是双足必须不断调整落脚点的根本原因。代码中的 DCM（发散运动分量）就是把这种发散程度显式地分离出来。</p>
+
         <p>上面的代码实现了LIPM的核心逻辑。注意<code>compute_dcm</code>函数中的DCM（Divergent Component of Motion）——这是现代双足控制中的关键概念。DCM是CoM状态的一个线性组合，它描述了机器人的"发散程度"：如果DCM在ZMP前方，机器人就会向前走；如果DCM在ZMP上，机器人就会静止。实际控制中，我们通过规划DCM轨迹来生成稳定的CoM运动，再通过逆动力学求解关节力矩。</p>
 
         <p><strong>Push Recovery（推扰恢复）</strong>是双足行走中最令人着迷的话题。想象一下，你正在走路，有人从侧面推了你一把——你会本能地做出反应：小推力时调整脚踝力矩，中推力时跨出一步，大推力时连续跨步。人形机器人的推扰恢复也遵循同样的三阶段策略：第一步是踝关节力矩补偿（Ankle Strategy），利用脚底的力矩传感器检测扰动并施加反向力矩；如果扰动超出了踝关节的能力范围，第二步是髋关节策略（Hip Strategy），通过上身摆动调整CoM位置；当扰动足够大时，第三步是跨步策略（Step Strategy），重新规划落脚点。</p>
+
+        <figure>
+            <svg role="img" aria-labelledby="fig26a-title fig26a-desc" viewBox="0 0 660 250" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig26a-title">双足推扰恢复的三级策略</title>
+                <desc id="fig26a-desc">随扰动幅度从小到大，依次触发踝策略（脚踝力矩补偿）、髋策略（上身摆动调整重心）与跨步策略（重新规划落脚点）。</desc>
+                <rect width="660" height="250" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig26a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <text x="40" y="34" font-family="'PingFang SC',system-ui,sans-serif" font-size="13" fill="#334155">扰动幅度增大</text>
+                <line x1="150" y1="29" x2="600" y2="29" stroke="#334155" stroke-width="2.5" marker-end="url(#fig26a-arrow)"/>
+                <g stroke-width="2" font-family="'PingFang SC',system-ui,sans-serif">
+                    <rect x="20" y="58" width="190" height="160" rx="14" fill="#dbeafe" stroke="#1d4ed8"/>
+                    <text x="115" y="90" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">踝策略 Ankle</text>
+                    <text x="115" y="120" font-size="12" fill="#334155" text-anchor="middle">小扰动</text>
+                    <text x="115" y="146" font-size="12" fill="#334155" text-anchor="middle">脚踝力矩补偿</text>
+                    <text x="115" y="172" font-size="12" fill="#334155" text-anchor="middle">双脚不移动</text>
+                    <rect x="235" y="58" width="190" height="160" rx="14" fill="#d6f1eb" stroke="#0e7490"/>
+                    <text x="330" y="90" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">髋策略 Hip</text>
+                    <text x="330" y="120" font-size="12" fill="#334155" text-anchor="middle">中扰动</text>
+                    <text x="330" y="146" font-size="12" fill="#334155" text-anchor="middle">上身摆动调整 CoM</text>
+                    <text x="330" y="172" font-size="12" fill="#334155" text-anchor="middle">仍在原地站稳</text>
+                    <rect x="450" y="58" width="190" height="160" rx="14" fill="#dcfce7" stroke="#15803d"/>
+                    <text x="545" y="90" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">跨步策略 Step</text>
+                    <text x="545" y="120" font-size="12" fill="#334155" text-anchor="middle">大扰动</text>
+                    <text x="545" y="146" font-size="12" fill="#334155" text-anchor="middle">重新规划落脚点</text>
+                    <text x="545" y="172" font-size="12" fill="#334155" text-anchor="middle">连续跨步防倒</text>
+                </g>
+            </svg>
+            <figcaption>双足推扰恢复的三级策略：扰动越大，可用的“招式”越高阶。人类会本能地依次升级，机器人也需要一套分层策略（通常用足底力传感器或 DCM 偏差来判定当前该用哪一级）。此图为教学示意，具体阈值需标定。</figcaption>
+        </figure>
 
         <div class="tip">
             <p><strong>工程技巧</strong>：在实际调试中，我建议先用仿真测试推扰恢复算法。在MuJoCo中给机器人施加不同方向和幅度的推力（从50N到500N），观察各阶段策略的触发阈值。记录每次失败的原因——大多数情况下，问题出在足底打滑模型的准确性上。真实地面摩擦系数的不确定性是推扰恢复从仿真到真机最大的鸿沟。</p>
         </div>
 
-        <h3>四足运动控制</h3>
+        <h2>四足运动控制</h2>
 
         <p>四足机器人（Quadruped Robot）在稳定性上比双足有天然优势——四条腿提供了更大的支撑多边形，这使得四足机器人在2026年已经率先实现了商业落地。Boston Dynamics Spot在全球部署了超过2000台，用于石油天然气巡检、建筑工地监控和公共安全。宇树B2（企业级四足机器人）在教育科研和安防巡检领域占据了显著市场份额。</p>
 
@@ -253,7 +319,7 @@ class QuadrupedMPC:
             </tr>
         </table>
 
-        <h3>全身控制（WBC）</h3>
+        <h2>全身控制（WBC）</h2>
 
         <p>全身控制（Whole-Body Control, WBC）解决的核心问题是：当机器人有几十个自由度（如H2 Plus的31个DOF），而任务目标远少于自由度数量时，如何协调所有关节共同完成任务？答案是建立一个<strong>任务层级（Task Hierarchy）</strong>，按照优先级排列所有控制目标：</p>
 
@@ -273,7 +339,7 @@ class QuadrupedMPC:
             <p><strong>学习建议</strong>：WBC是机器人控制中数学最密集的领域之一。如果你想深入理解，我建议按以下顺序阅读：先读<strong>《Modern Robotics》</strong>第3章关于任务空间控制的介绍，再看<strong>Luis Sentis的博士论文</strong>（2007年，斯坦福），最后跑一遍<strong>Pinocchio</strong>或<strong>RBDL</strong>中关于多优先级控制的开源示例。不要试图一次性理解所有数学——先从QP的几何直觉入手，再补矩阵论细节。</p>
         </div>
 
-        <h3>2026人形量产时代</h3>
+        <h2>2026人形量产时代</h2>
 
         <p>2026年被业界称为"人形机器人量产元年"。多个标志性事件在这一年集中爆发：</p>
 
@@ -285,7 +351,7 @@ class QuadrupedMPC:
 
         <p>中国厂商方面，AgiBot（智元机器人）开源了<strong>G1平台</strong>的完整软硬件设计，包括CAD文件、BOM表、底层驱动和上层控制软件。G1的33个关节全部使用国产谐波减速器，单台硬件成本控制在1.5万美元以内。这个开放策略正在催生一个类似于Linux生态的开发者社区——已有超过300个科研团队基于G1平台开展研究。</p>
 
-        <h3>商业化挑战</h3>
+        <h2>商业化挑战</h2>
 
         <p>尽管技术突破令人振奋，人形机器人的商业化仍然面临严峻挑战。我带你逐一审视这些"拦路虎"。</p>
 
@@ -303,12 +369,22 @@ class QuadrupedMPC:
 
         <p>人形机器人的最终形态需要通用智能——这就是下一章的使命。从双足行走的物理控制到具身智能的认知能力，从ZMP稳定性到VLA大模型的理解力，机器人的"身体"和"大脑"正在加速融合。让我们进入第27章：<strong>具身智能与VLA大模型</strong>——看看AI如何让机器人真正"理解"世界。</p>
 
+        <h2>延伸阅读与出处</h2>
+
+        <ul>
+            <li>Vukobratović, M., &amp; Borovac, B. (2004). Zero-moment point — thirty five years of its life. <em>International Journal of Humanoid Robotics</em>, 1(1), 157–173。ZMP 稳定性判据的权威综述。 <a href="https://doi.org/10.1142/S0219843604000083">doi:10.1142/S0219843604000083</a></li>
+            <li>Kajita, S., et al. (2003). Biped Walking Pattern Generation by using Preview Control of Zero-Moment Point. <em>IEEE ICRA</em>。LIPM/预览控制生成 CoM 轨迹的经典论文。 <a href="https://doi.org/10.1109/ROBOT.2003.1241826">doi:10.1109/ROBOT.2003.1241826</a></li>
+            <li>Raibert, M. H. (1986). <em>Legged Robots That Balance</em>. MIT Press。四足/跳跃机器人的 Raibert 启发式规则来源。</li>
+            <li>Boston Dynamics、Unitree、Figure、AgiBot 等厂商 2026 年公开资料。本章中的型号规格、售价与量产状态属教学示意。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="25.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="27.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
