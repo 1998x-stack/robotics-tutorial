@@ -5,11 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>第25章 真机部署与集成</title>
     <link rel="stylesheet" href="theme.css">
+    <style>
+        main { min-width: 0; }
+        .skip-link { position: absolute; left: 1rem; top: -4rem; background: #1e3a8a; color: #fff; padding: .5rem 1rem; border-radius: .5rem; z-index: 20; }
+        .skip-link:focus { top: 1rem; }
+        figure { margin: 2rem 0; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 16px; background: #fff; overflow-x: auto; }
+        figure svg { display: block; width: 100%; height: auto; }
+        figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
+        .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .eq-scroll { overflow-x: auto; padding: .4rem 0; }
+        .eq-scroll math { font-size: 1.15rem; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+        @media print { .skip-link { display: none; } figure { break-inside: avoid; } }
+    </style>
 </head>
 <body>
+<a class="skip-link" href="#content">跳转至正文</a>
 <div class="double-border">
 <div class="container">
-    <div class="sidebar">
+    <nav class="sidebar" aria-label="课程章节导航">
         <h3>🤖 课程目录</h3>
         <ul class="chapter-list">
             <li><a href="01.html">第1章 机器人学概述</a></li>
@@ -41,15 +57,16 @@
             <li><a href="27.html">第27章 具身智能与VLA大模型</a></li>
             <li><a href="28.html">第28章 综合项目实战</a></li>
         </ul>
-    </div>
-    <div class="main-content">
-        <h2>第25章 真机部署与集成</h2>
+    </nav>
+    <main class="main-content" id="content">
+        <article>
+        <h1>第25章 真机部署与集成</h1>
 
         <p>大家好，我是你们的讲师。如果你一路跟着这个教程走到了这里，恭喜你——你的机器人算法已经在仿真里跑通了，底层驱动在MCU上稳稳地运行着，控制循环一丝不苟地完成着每一次PID运算。但接下来这一步才是真正把人分成"能做机器人"和"只会做仿真"的分水岭：<strong>把系统部署到真机上</strong>。</p>
 
         <p>真机部署（Real-World Deployment）是整个机器人开发流程中最困难、也最容易出问题的一环。仿真中的理想条件——零噪声的传感器、完美的执行器、确定性的通信延迟——到了现实世界全部不成立。你必须面对一个残酷的事实：你的代码在真机上第一次运行几乎一定会出问题。但这恰恰是机器人学最有趣的地方——把"几乎"变成"不"。本章我们来走一遍真机部署的完整流程：从Sim-to-Real迁移检查、系统集成测试、安全规范到CI/CD流水线。</p>
 
-        <h3>Sim-to-Real检查清单</h3>
+        <h2>Sim-to-Real检查清单</h2>
 
         <p>从仿真到真机不是"一键部署"——而是一系列逐个验证的步骤。每次你跳过一项验证，后面就可能需要一个星期来排查。下面是一张我总结的Sim-to-Real迁移检查清单：</p>
 
@@ -128,11 +145,13 @@
             </tr>
         </table>
 
+        <p><strong>说明</strong>：上表中的偏差范围（如惯量偏小 30-50%、急停 &lt; 100ms 等）为教学示意，用于反映典型量级；具体数值请以器件手册、实测标定与 ISO 10218 标准正文为准。</p>
+
         <div class="warning">
             <p><strong>血的教训</strong>：曾经有一个团队，他们的七轴协作机器人在Gazebo里做抓取任务时100%成功。部署到真机后，第一个动作就把末端撞到了桌子上——原因是仿真里的碰撞模型使用的是简化凸包（convex hull），而真实的末端执行器有一个突出的螺丝头，在仿真里根本不存在。这个故事的启示是：<strong>仿真帮你验证"算法对不对"，但只有真机能验证"硬件行不行"</strong>。</p>
         </div>
 
-        <h3>系统集成测试</h3>
+        <h2>系统集成测试</h2>
 
         <p>检查清单过完了，模型参数也对上了——但这只是第一步。真正的挑战在于整个系统的集成行为：各个模块组合在一起之后，有没有产生意想不到的交互？这就是系统集成测试（System Integration Testing）要回答的问题。</p>
 
@@ -148,7 +167,7 @@
             <li><strong>耐久测试（Endurance Tests）</strong>：让机器人连续运行8-24小时，观察性能是否出现退化——热漂移、润滑剂性能下降、机械疲劳往往在长时间运行后才暴露。</li>
         </ul>
 
-        <h3>安全规范与标准</h3>
+        <h2>安全规范与标准</h2>
 
         <p>在真机上运行机器人的时候，安全不是"可选项"——它是法律和道德的要求。全球范围内，工业机器人安全主要由两个标准来规范。</p>
 
@@ -163,11 +182,23 @@
             <li><strong>距离和速度监控（Distance and Speed Monitoring）</strong>：根据人与机器人的距离，动态调整机器人的运行速度。</li>
         </ul>
 
+        <p>安全距离不是拍脑袋定的，而是由“停得下来”决定的。设机器人末端速度为 <span class="math-inline">v</span>、从触发停止到制动器真正起作用的总响应时间为 <span class="math-inline">t<sub>r</sub></span>、最大减速度为 <span class="math-inline">a<sub>max</sub></span>，则停止距离约为：</p>
+        <div class="eq-scroll" data-math-scroll="true" role="region" tabindex="0" aria-label="停止距离公式，可横向滚动">
+            <math display="block" aria-label="停止距离 d_stop 等于速度 v 乘以响应时间 t_r，加上速度平方除以两倍最大减速度">
+                <mrow>
+                    <msub><mi>d</mi><mi>stop</mi></msub><mo>=</mo>
+                    <mi>v</mi><msub><mi>t</mi><mi>r</mi></msub><mo>+</mo>
+                    <mfrac><msup><mi>v</mi><mn>2</mn></msup><mrow><mn>2</mn><msub><mi>a</mi><mi>max</mi></msub></mrow></mfrac>
+                </mrow>
+            </math>
+        </div>
+        <p>这个式子解释了两个工程直觉：一是响应时间 <span class="math-inline">t<sub>r</sub></span> 起主要作用——即使减速度很大，控制链路加上制动器的延迟也会先让机器人多走一段；二是第二项随速度平方增长，因此高速时“降速”对安全距离的影响远大于“加大制动”。公式为物理模型（教学示意），实际安全评估需结合实测减速曲线与标准要求。</p>
+
         <div class="highlight">
             <p><strong>安全设计原则</strong>：在机器人安全设计中，始终遵循"<strong>两级验证（Two-Tier Validation）</strong>"——所有安全关键功能不仅要有软件实现，还需要独立的硬件备份。比如急停既要通过ROS 2的软件接口触发，也要有独立的硬件回路直接切断电机电源。软件会出Bug，但硬件急停回路不会——这就是"双保险"的含义。</p>
         </div>
 
-        <h3>机器人CI/CD</h3>
+        <h2>机器人CI/CD</h2>
 
         <p>如果你的机器人项目有多个开发者，代码频繁更新，那么手动测试的效率很快就会成为瓶颈。这时候就需要引入CI/CD（持续集成/持续部署）流水线。机器人领域的CI/CD与普通软件工程有些不同——我们不能仅仅跑单元测试就完事，还需要"仿真在环"的验证。</p>
 
@@ -181,6 +212,39 @@
             <li><strong>仿真在环测试（SIL）</strong>：在Gazebo/Isaac Sim中运行完整的机器人任务，记录成功率。</li>
             <li><strong>部署</strong>：将确认无误的Docker镜像推送到机器人上，自动启动新版本。</li>
         </ul>
+
+        <figure>
+            <svg role="img" aria-labelledby="fig25a-title fig25a-desc" viewBox="0 0 660 150" xmlns="http://www.w3.org/2000/svg">
+                <title id="fig25a-title">机器人 CI/CD 流水线阶段</title>
+                <desc id="fig25a-desc">从左到右依次为构建、静态分析、单元测试、集成测试、仿真在环测试与部署六个阶段，前面的阶段通过后才进入下一个，仿真在环测试在真机部署之前把关。</desc>
+                <rect width="660" height="150" rx="18" fill="#f8fbf7"/>
+                <defs>
+                    <marker id="fig25a-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+                </defs>
+                <g stroke="#334155" stroke-width="2.5" fill="none" marker-end="url(#fig25a-arrow)">
+                    <line x1="106" y1="80" x2="122" y2="80"/><line x1="216" y1="80" x2="232" y2="80"/>
+                    <line x1="326" y1="80" x2="342" y2="80"/><line x1="436" y1="80" x2="452" y2="80"/>
+                    <line x1="546" y1="80" x2="562" y2="80"/>
+                </g>
+                <g stroke-width="2">
+                    <rect x="12" y="50" width="94" height="60" rx="12" fill="#dbeafe" stroke="#1d4ed8"/>
+                    <rect x="122" y="50" width="94" height="60" rx="12" fill="#d6f1eb" stroke="#0e7490"/>
+                    <rect x="232" y="50" width="94" height="60" rx="12" fill="#dcfce7" stroke="#15803d"/>
+                    <rect x="342" y="50" width="94" height="60" rx="12" fill="#ffe3c2" stroke="#c2410c"/>
+                    <rect x="452" y="50" width="94" height="60" rx="12" fill="#f3e8ff" stroke="#7e22ce"/>
+                    <rect x="562" y="50" width="94" height="60" rx="12" fill="#fef9c3" stroke="#a16207"/>
+                </g>
+                <g font-family="'PingFang SC',system-ui,sans-serif" font-size="13" fill="#0f172a" text-anchor="middle">
+                    <text x="59" y="86">构建</text><text x="169" y="78">静态</text><text x="169" y="94">分析</text>
+                    <text x="279" y="78">单元</text><text x="279" y="94">测试</text>
+                    <text x="389" y="78">集成</text><text x="389" y="94">测试</text>
+                    <text x="499" y="78">仿真</text><text x="499" y="94">在环</text>
+                    <text x="609" y="86">部署</text>
+                </g>
+                <text x="330" y="132" font-family="'PingFang SC',system-ui,sans-serif" font-size="11" fill="#475569" text-anchor="middle">仿真在环（SIL）在真机部署之前把关——把回归风险挡在硬件更新之前</text>
+            </svg>
+            <figcaption>机器人 CI/CD 的典型阶段：构建、静态分析、单元测试、集成测试、仿真在环（SIL）、部署。与普通软件不同，机器人流水线必须在部署前跑一轮仿真任务来验证行为。此图为教学示意，实际顺序与命名因团队而异。</figcaption>
+        </figure>
 
         <p>下面是一个使用Docker Compose部署ROS 2机器人系统的示例配置：</p>
 
@@ -229,7 +293,7 @@ services:
       - ROBOT_HOST=localhost
     restart: unless-stopped</code></pre>
 
-        <h3>部署实战故事</h3>
+        <h2>部署实战故事</h2>
 
         <p>讲一个我亲身经历的故事。一个四足机器人项目，我们花了三个月在仿真中训练行走策略。在Isaac Sim中，域随机化做得非常充分——摩擦系数、地面刚度、传感器噪声全部加了随机扰动。策略在所有仿真场景下都表现完美。我们信心满满地把模型部署到真机上，上电，启动——机器人稳稳地站住了，然后走了两步……第三步的时候，右前腿突然抽搐了一下，然后整台机器倒地。</p>
 
@@ -243,12 +307,22 @@ services:
 
         <p>掌握部署流程，能把一个机器人在仿真中调试出来的能力安全、可靠地迁移到真实世界的物理系统中——这本身就是一项非常宝贵的工程能力。下一章我们将进入本课程最前沿的部分之一——<strong>人形与四足机器人</strong>。从双足平衡的动态行走控制到四足机器人的步态规划，这是2026年机器人领域最热门的方向。</p>
 
+        <h2>延伸阅读与出处</h2>
+
+        <ul>
+            <li>ISO 10218-1:2011 / ISO 10218-2:2011 <em>Robots and robotic devices — Safety requirements for industrial robots</em>。本章工业机器人安全要求（急停、力/速度监控、系统集成）的标准来源。 <a href="https://www.iso.org/standard/51330.html">iso.org/standard/51330</a></li>
+            <li>ISO/TS 15066:2016 <em>Robots and robotic devices — Collaborative robots</em>：协作模式与速度/力限制。 <a href="https://www.iso.org/standard/62996.html">iso.org/standard/62996</a>。速度/力阈值数字本章作为教学示意引用。</li>
+            <li>Macenski, S., et al. (2022). Robot Operating System 2: Design, architecture, and uses in the wild. <em>Science Robotics</em>, 7(66), eabm6074。本章 ROS 2 部署与 CI/CD 的架构背景。 <a href="https://doi.org/10.1126/scirobotics.abm6074">doi:10.1126/scirobotics.abm6074</a></li>
+            <li>ROS 2 官方文档（launch_testing、ament_lint）、Docker 与 Isaac Sim / Gazebo 文档。本章中的配置命令属教学示例。</li>
+        </ul>
+
         <div class="footer-nav">
             <a href="24.html">← 上一章</a>
             <a href="index.html">📖 返回目录</a>
             <a href="26.html">下一章 →</a>
         </div>
-    </div>
+        </article>
+    </main>
 </div>
 </div>
 </body>
