@@ -18,6 +18,9 @@
         .math-scroll { display: block; max-width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; }
         .math-scroll:focus-visible { outline: 3px solid #147f80; outline-offset: 2px; }
         .math-scroll math[display="block"] { width: max-content; min-width: 100%; font-size: clamp(1.05rem, 2.2vw, 1.3rem); }
+        code { overflow-wrap: anywhere; word-break: break-word; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; max-width: 100%; overflow-x: auto; } }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
         @media print { .skip-link { display: none; } figure { break-inside: avoid; } .math-scroll { overflow: visible; } }
     </style>

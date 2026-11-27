@@ -23,6 +23,9 @@
         .control-row button[aria-pressed="true"] { background: #0e7490; color: #fff; border-color: #0e7490; }
         .control-row button:focus-visible { outline: 3px solid #147f80; outline-offset: 2px; }
         .pid-status { min-height: 1.5em; color: #0e7490; font-weight: 600; }
+        code { overflow-wrap: anywhere; word-break: break-word; }
+        pre { max-width: 100%; overflow-x: auto; }
+        @media (max-width: 768px) { table { display: block; max-width: 100%; overflow-x: auto; } }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
         @media print { .skip-link, .control-row { display: none; } figure { break-inside: avoid; } .math-scroll { overflow: visible; } }
     </style>
