@@ -13,6 +13,10 @@
         figure svg { display: block; width: 100%; height: auto; }
         figcaption { font-size: .85rem; line-height: 1.7; color: #475569; border-top: 1px dashed #e2e8f0; margin-top: .8rem; padding-top: .7rem; }
         .math-inline { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", serif; vertical-align: -.05em; }
+        .eq-scroll { max-width: 100%; min-width: 0; margin: 1.4rem 0; padding: .3rem 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; overflow-x: auto; overflow-y: hidden; }
+        .eq-scroll:focus-visible { outline: 3px solid #147f80; outline-offset: 2px; }
+        .eq-scroll math[display="block"] { width: max-content; min-width: 100%; font-size: clamp(1.05rem, 2.2vw, 1.3rem); }
+        @media print { .eq-scroll { overflow: visible; } }
         pre { max-width: 100%; overflow-x: auto; }
         @media (max-width: 768px) { table { display: block; overflow-x: auto; max-width: 100%; } }
         @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -106,6 +110,20 @@
         <h2>12.2 梯形与S形速度曲线</h2>
 
         <p>最基础的轨迹规划方法是梯形速度曲线（Trapezoidal Velocity Profile）。它将运动分成三个阶段：匀加速、匀速、匀减速。三段式的速度曲线在视觉上像一个梯形，因此得名。</p>
+
+        <div class="eq-scroll" data-math-scroll="true" role="region" tabindex="0" aria-label="梯形速度曲线加速段公式，可横向滚动">
+            <math display="block" aria-label="加速段：速度 v(t) 等于最大加速度 a_max 乘以时间 t，位移 s(t) 等于二分之一 a_max 乘以 t 的平方，适用区间为 0 到加速时间 t_acc">
+                <mrow>
+                    <mi>v</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo><msub><mi>a</mi><mi>max</mi></msub><mi>t</mi>
+                    <mo>,</mo><mspace width="1em"/>
+                    <mi>s</mi><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo>
+                    <mfrac><mn>1</mn><mn>2</mn></mfrac><msub><mi>a</mi><mi>max</mi></msub><msup><mi>t</mi><mn>2</mn></msup>
+                    <mo>,</mo><mspace width="1em"/>
+                    <mn>0</mn><mo>&#x2264;</mo><mi>t</mi><mo>&#x2264;</mo><msub><mi>t</mi><mi>acc</mi></msub>
+                </mrow>
+            </math>
+        </div>
+        <p>其中 <span class="math-inline">a_max</span> 为最大加速度，<span class="math-inline">t_acc = v_max / a_max</span> 为达到最大速度所需的加速时间。三段对称的梯形曲线总位移为 <span class="math-inline">s = v_max (t_total − t_acc)</span>，这也是下面代码里 <code>t_const</code>、<code>v_peak</code> 两个量的来源。上式为通用运动学定义，属教学示意。</p>
 
         <pre><code>def trapezoidal_profile(t, t_total, v_max, a_max):
     """生成梯形速度曲线的位置、速度、加速度"""
